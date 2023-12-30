@@ -13,7 +13,6 @@ public class Playback : MonoBehaviour
     private List<Experiment.Movement> movements;
     private float startTime = 0f;
 
-    private SHLevelManager level;
     private SHControls controls;
     private SHPlayer player;
 
@@ -41,7 +40,6 @@ public class Playback : MonoBehaviour
 
         //movements = Array.ConvertAll(movementsCSV.Split(','), s => int.Parse(s));
 
-        level = FindObjectOfType<SHLevelManager>();
         controls = FindObjectOfType<SHControls>();
         player = FindObjectOfType<SHPlayer>();
 
@@ -52,7 +50,7 @@ public class Playback : MonoBehaviour
     void Update()
     {
 
-        if (!level.started) return;
+        if (!LevelManager.Instance.Started) return;
 
         if (startTime == 0f) startTime = Time.time;
 

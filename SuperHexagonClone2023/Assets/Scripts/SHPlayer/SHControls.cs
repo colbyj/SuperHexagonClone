@@ -7,9 +7,11 @@ public class SHControls : MonoBehaviour
 
     public float input;
     private SHPlayer player;
+    private Rigidbody2D rb;
 
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<SHPlayer>();
     }
 
@@ -20,15 +22,30 @@ public class SHControls : MonoBehaviour
             input = Input.GetAxisRaw("Horizontal");
         }
 
+        if (input == 0)
+            return;
+
+        float rotation = 0;
+
         //Horizontal input greater than 1 is the rotate right input which implies rotating clockwise
         if (input > 0)
         {
-            transform.Rotate(Vector3.forward * -GameParameters.PlayerRotationRate);
+             rotation = -DifficultyManager.Instance.PlayerRotationRate;
         }
         else if (input < 0)
         {
-            transform.Rotate(Vector3.forward * GameParameters.PlayerRotationRate);
+            rotation = DifficultyManager.Instance.PlayerRotationRate;
         }
+
+        ContactFilter2D contactFilter = new ContactFilter2D();
+        contactFilter.layerMask = 8;  // Check for threats only
+        List<Collider2D> results = new List<Collider2D>();
+
+        rb.MoveRotation(rb.rotation + rotation);
+        int count = rb.OverlapCollider(contactFilter, results);
+
+        if (count > 0)  // Prevent player from going through walls.
+            rb.MoveRotation(rb.rotation - rotation);
     }
 
     public float GetAngle()

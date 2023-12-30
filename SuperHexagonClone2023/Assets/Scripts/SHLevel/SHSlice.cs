@@ -18,7 +18,7 @@ public class SHSlice : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        laneCount = StageConstructor.laneCount;
+        laneCount = LaneManager.lanesRequired;
 
         Vector2[] points = new Vector2[3];
         float arcLengthOuter = ArcLengthOuter();

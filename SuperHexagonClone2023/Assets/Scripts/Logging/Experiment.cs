@@ -162,7 +162,7 @@ public partial class Experiment : MonoBehaviour
     private int trialFrames = 0;
     private bool newHighScore = false;
 
-    public SHLevelManager levelManager;
+    //public SHLevelNew levelManager;
     //public StageConstructor stageConstructor;
 
     // consider a "SHTimer" class with value, text, direction
@@ -249,7 +249,7 @@ public partial class Experiment : MonoBehaviour
 
         if (state == SHGameState.Playing)
         {
-            if (!levelManager.started) return;
+            if (!LevelManager.Instance.Started) return;
 
             trialFrames++;
             timerTrial.Update(deltaT);
@@ -342,8 +342,8 @@ public partial class Experiment : MonoBehaviour
     public void EndSession(bool onGameStart)
     {
         timerTrial.Stop();
-        levelManager.ClearThreats();
-        levelManager.StopLevel();
+        LaneManager.Instance.ResetLanes();
+        LevelManager.Instance.StopLevel();
 
         if (!onGameStart)
         {
@@ -359,8 +359,6 @@ public partial class Experiment : MonoBehaviour
 
         // Set message in update loop, due to interference with DisplayMessage
         countdown.enabled = true;
-
-        levelManager.started = false;
 
         if (sessionNumber >= TotalSessions())
         {
@@ -399,8 +397,8 @@ public partial class Experiment : MonoBehaviour
     public void EndTrial()
     {
         timerTrial.Stop();
-        levelManager.ClearThreats();
-        levelManager.StopLevel();
+        LaneManager.Instance.ResetLanes();
+        LevelManager.Instance.StopLevel();
 
         SaveTrial();
         trialNumber++;
@@ -430,8 +428,8 @@ public partial class Experiment : MonoBehaviour
 
         timerTrial.Reset();
         timerTrial.Start();
-        levelManager.diffSettings.ResetDifficulty();
-        levelManager.BeginLevel();
+        DifficultyManager.Instance.ResetDifficulty();
+        LevelManager.Instance.BeginLevel();
 
         trialFrames = 0;
         newHighScore = false;

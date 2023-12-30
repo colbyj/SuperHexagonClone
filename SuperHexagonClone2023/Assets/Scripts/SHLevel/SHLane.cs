@@ -3,17 +3,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using CustomExtensions;
 using UnityEngine.Pool;
-using static SHLevel;
 
-
-
-//
-// Summary:
-//     Spawn threats, and removes those threats when needed.
+/// <summary>
+/// Spawn threats, and removes those threats when needed.
+/// </summary>
 [RequireComponent(typeof(MeshFilter))]
 public class SHLane : MonoBehaviour
 {
-
     public int num;
 
     [Header("Object Pooling Config")]
@@ -48,21 +44,21 @@ public class SHLane : MonoBehaviour
             InvokeRepeating(nameof(SpawnThreat), autoStartDelay, autoStartPeriod);
         }*/
         // Throw an error if Pivot is missing
-        gameObject.FindRequiredGameObjectWithTag("Pivot");
+        //gameObject.FindRequiredGameObjectWithTag("Pivot");
     }
 
     //Spawning Functionality
 
-    public SHLine SpawnThreat(float thickness)
+    public SHLine SpawnThreat(float thickness, float radiusOffset = 0)
     { 
         SHLine threat = threatPool.Get();
 
         if (threat != null)
         {
-            threat.radius = GameParameters.ThreatStartingRadius;
+            threat.radius = ThreatParameters.CurrentStartingRadius + radiusOffset;
 
             // Modify the thickness by current difficult level (as objects spawn faster as the game goes on)
-            threat.thickness = thickness / FindObjectOfType<AccelerateDifficulty>().spawningDifficulty.GetValue();
+            threat.thickness = thickness;// / FindObjectOfType<AccelerateDifficulty>().spawningDifficulty.GetValue();
 
             // Reset the position and rotation of the line/threat.
             threat.transform.position = new Vector3(0f, 0f, -0.2f);
@@ -125,6 +121,20 @@ public class SHLane : MonoBehaviour
         activeThreats.Remove(releasedLine);
     }
 
+    public float GetFurthestThreat()
+    {
+        float furthestThreat = 0f;
+
+        for (int i = 0; i < activeThreats.Count; i++)
+        {
+            if (activeThreats[i].radius > furthestThreat)
+            {
+                furthestThreat = activeThreats[i].radius;
+            }
+        }
+
+        return furthestThreat;
+    }
 
     void Update()
     {
@@ -155,7 +165,8 @@ public class SHLane : MonoBehaviour
     {
         // Use ToArray to avoid having the collection modifed by the loop errors.
         foreach (SHLine threat in activeThreats.ToArray()) 
-        { 
+        {
+            threat.ResetLine();
             threatPool.Release(threat);
         }
         //threatPool.Clear();

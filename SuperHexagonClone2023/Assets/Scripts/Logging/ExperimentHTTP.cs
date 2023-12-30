@@ -60,8 +60,8 @@ public partial class Experiment
         frm.AddField("avgFps", framerate.ToString("#.00"));
         frm.AddField("trialNumber", trialNumber);
         frm.AddField("sessionNumber", sessionNumber);
-        frm.AddField("difficultyRotation", levelManager.diffSettings.rotationDifficulty.GetValue().ToString("#.00000"));
-        frm.AddField("difficultySpawning", levelManager.diffSettings.spawningDifficulty.GetValue().ToString("#.00000"));
+        frm.AddField("difficultyRotation", DifficultyManager.Instance.RotationSpeed.ToString("#.00000"));
+        frm.AddField("difficultySpawning", DifficultyManager.Instance.ThreatSpeed.ToString("#.00000"));
         frm.AddField("interrupted", interrupted ? "true": "false");
         frm.AddField("movements", StringCompressor.CompressString(movementsCSV()));
 

@@ -1,23 +1,26 @@
 ﻿using CustomExtensions;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using UnityEngine;
 
 
-//
-// Summary:
-//          This draws the lines which act as obstacles as well as the central hexagon.
-//          If velocity is set, these lines will also move.
+/// <summary>
+/// This draws the lines which act as obstacles as well as the central hexagon.
+/// If velocity is set, these lines will also move.
+/// </summary>
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(MeshRenderer))]
 [RequireComponent(typeof(PolygonCollider2D))]
+[RequireComponent(typeof(EdgeCollider2D))]
 public class SHLine : MonoBehaviour
 {
     /// <summary>
     /// Distance from the centre of the game. (Inner radius)
     /// </summary>
-    [HideInInspector] public float radius = GameParameters.ThreatStartingRadius;
-    [HideInInspector] public float thickness = 3f;
+    public float radius = ThreatParameters.StartingRadius;
+    public float thickness = ThreatParameters.DefaultThickness;
     public int laneCount = 6;  // This gets set by LaneThreat
     /// <summary>
     /// Radial velocity in radii per second.
@@ -25,6 +28,7 @@ public class SHLine : MonoBehaviour
     public float velocity = 0f;
     public Vector3[] points;
     private PolygonCollider2D polyCol;
+    private EdgeCollider2D edgeCol;
 
     // To avoid wasting memory, only create an use one mesh object
     private Mesh mesh;
@@ -35,8 +39,9 @@ public class SHLine : MonoBehaviour
     {
         transform.position = new Vector3(0f, 0f, -0.2f);
         polyCol = GetComponent<PolygonCollider2D>();
+        edgeCol = GetComponent<EdgeCollider2D>();
 
-        laneCount = StageConstructor.laneCount;
+        laneCount = LaneManager.lanesRequired;
 
         mesh = new Mesh();
         points = new Vector3[4];
@@ -56,13 +61,14 @@ public class SHLine : MonoBehaviour
         transform.position = new Vector3(0f, 0f, -0.2f);
 
         polyCol = GetComponent<PolygonCollider2D>();
+        edgeCol = GetComponent<EdgeCollider2D>();
 
         if (tag == "Threat")
         {
-            radius = GameParameters.ThreatStartingRadius;
-            velocity = GameParameters.ThreatRadialRate;
-        } // what is set in the prefab is sgnored
-        laneCount = StageConstructor.laneCount;
+            radius = ThreatParameters.StartingRadius;
+            velocity = DifficultyManager.Instance.ThreatSpeed;
+        } // what is set in the prefab is ignored
+        laneCount = LaneManager.lanesRequired;
 
         mesh = new Mesh();
         points = new Vector3[4];
@@ -83,13 +89,19 @@ public class SHLine : MonoBehaviour
         radius -= velocity * Time.deltaTime;
 
         // Threats are removed by SHLane.
+        UpdatePolygon();
+    }
 
+    public void UpdatePolygon()
+    {
         UpdatePoints();
         UpdateMesh();
         mesh.RecalculateNormals();
         mesh.RecalculateBounds();
 
-        polyCol.SetPath(0, points.ToVector2Array());
+        var points2D = points.ToVector2Array();
+        polyCol.SetPath(0, points2D);
+        edgeCol.SetPoints(points2D.Skip(2).Take(2).ToList());
     }
 
     private void UpdatePoints()
@@ -136,5 +148,13 @@ public class SHLine : MonoBehaviour
             return 0;
         }
         return 2 * radius * Mathf.Tan(Mathf.PI / (float)laneCount);
+    }
+
+    public void ResetLine()
+    {
+        radius = ThreatParameters.StartingRadius;
+        thickness = ThreatParameters.DefaultThickness;
+        velocity = 0;
+        UpdatePolygon();
     }
 }

@@ -5,7 +5,7 @@ using UnityEngine;
 /* Primary purpose is to be attached to the camera for the classic super hexagon orientation, but it can be used generically also */
 public class ConstantWorldRotation : MonoBehaviour
 {
-
+    public static ConstantWorldRotation Instance { get; private set; }
     public RotationStartMode startMode;
 
     [Range(0f, 30f)]
@@ -57,6 +57,12 @@ public class ConstantWorldRotation : MonoBehaviour
     {
 
     }
+
+    private void Awake()
+    {
+        Instance = this;
+    }
+
     void Start()
     {
         switch (startMode)
@@ -83,6 +89,7 @@ public class ConstantWorldRotation : MonoBehaviour
             InvokeRepeating("FlipRoll", 0f, .5f);
         }
     }
+
     public void FlipRoll()
     {
         //Is the rotation cooldown still on? Then abort computation!
@@ -118,6 +125,20 @@ public class ConstantWorldRotation : MonoBehaviour
             }
         }
 
+    }
+
+    public void Clockwise()
+    {
+        if (right)
+            return;
+        LevelEnducedFlip();
+    }
+
+    public void CounterClockwise()
+    {
+        if (!right)
+            return;
+        LevelEnducedFlip();
     }
 
     public void LevelEnducedFlip()

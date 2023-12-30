@@ -131,10 +131,10 @@ public class MovementPath {
         }
 
         // Seconds the player needs to rotate to the next lane
-        float rotationSeconds = Mathf.Abs(angleDelta / (GameParameters.PlayerRotationRate / Time.fixedDeltaTime)); 
+        float rotationSeconds = Mathf.Abs(angleDelta / (DifficultyManager.Instance.PlayerRotationRate / Time.fixedDeltaTime)); 
 
         // The ray needs to be drawn toward this radius value
-        float radialDelta = GameParameters.ThreatRadialRate * rotationSeconds;
+        float radialDelta = DifficultyManager.Instance.ThreatDifficultyAccelerator.GetValue() * rotationSeconds;
 
         endPointPolar = new Vector2(startPointPolar.x + radialDelta, startPointPolar.y + angleDelta);
         return endPointPolar;
