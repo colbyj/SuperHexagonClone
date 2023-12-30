@@ -5,7 +5,7 @@ using System.Xml;
 using System;
 using System.Linq;
 
-namespace SH.Level 
+namespace SH.LevelScripting 
 {
     [Serializable]
     public enum LevelCommandType
@@ -18,7 +18,8 @@ namespace SH.Level
         ThreatSpeedMax,
         PlayerSpeed,
         PatternRadiusOffset,
-        Spawn,
+        SpawnOne,
+        SpawnGroup,
         RepeatFromHere,
         CWCamera,
         CCWCamera,
@@ -59,14 +60,58 @@ namespace SH.Level
         }
     }
 
-    public class LevelSpawnCommand : LevelCommand
+    public class LevelSpawnOneCommand : LevelCommand
     {
-        public LevelPattern ToSpawn;
-
-        public LevelSpawnCommand(string toParse)
+        public List<LevelPattern> ToSpawn;
+        public LevelPattern GetRandomToSpawn
         {
-            CommandType = LevelCommandType.Spawn;
-            ToSpawn = new LevelPattern(toParse);
+            get
+            {
+                int randomIdx = UnityEngine.Random.Range(0, ToSpawn.Count());
+                return ToSpawn[randomIdx];
+            }
+        }
+
+        public LevelSpawnOneCommand(XmlNodeList patternNodes)
+        {
+            CommandType = LevelCommandType.SpawnOne;
+            ToSpawn = new List<LevelPattern>();
+
+            foreach (XmlNode patternNode in patternNodes)
+            {
+                ToSpawn.Add(new LevelPattern(patternNode));
+            }
+        }
+    }
+
+    public class LevelSpawnGroupCommand : LevelCommand
+    {
+        public List<List<LevelPattern>> GroupsToSpawn;
+        public List<LevelPattern> GetRandomGroupToSpawn
+        {
+            get
+            {
+                int randomIdx = UnityEngine.Random.Range(0, GroupsToSpawn.Count());
+                Debug.Log(randomIdx);
+                return GroupsToSpawn[randomIdx];
+            }
+        }
+
+        public LevelSpawnGroupCommand(XmlNodeList patternGroupNodes)
+        {
+            CommandType = LevelCommandType.SpawnGroup;
+            GroupsToSpawn = new List<List<LevelPattern>>();
+
+            foreach (XmlNode patternGroupNode in patternGroupNodes)
+            {
+                List<LevelPattern> group = new List<LevelPattern>();
+
+                foreach (XmlNode patternNode in patternGroupNode.ChildNodes)
+                {
+                    group.Add(new LevelPattern(patternNode));
+                }
+                GroupsToSpawn.Add(group);
+            }
         }
     }
 
@@ -77,38 +122,43 @@ namespace SH.Level
         [SerializeField] private int currentIndex;
         [SerializeField] private int repeatFromIndex = 0;
 
-        public void ParseLevelDefintion(string text)
+        public void ParseLevelXml(string xmlString)
         {
             LevelCommands = new List<LevelCommand>();
-            string[] rows = text.Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
 
-            for (int i = 0; i < rows.Length; i++)
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xmlString);
+
+            foreach (XmlNode commandNode in doc.DocumentElement.SelectSingleNode("/Commands").ChildNodes)
             {
-                AddLevelCommand(rows[i]);
+                AddLevelCommand(commandNode);
             }
         }
 
-        private void AddLevelCommand(string commandString)
+        private void AddLevelCommand(XmlNode commandNode)
         {
-            string[] parts = commandString.Split(',', 2);
-            LevelCommandType type = Enum.Parse<LevelCommandType>(parts[0]);
+            LevelCommandType commandType = Enum.Parse<LevelCommandType>(commandNode.Name);
 
-            if (type == LevelCommandType.Spawn)
+            if (LevelCommand.FloatCommandEnums.Contains(commandType))
             {
-                LevelCommands.Add(new LevelSpawnCommand(parts[1]));
+                LevelCommands.Add(new LevelFloatCommand(commandType, commandNode.InnerText));
             }
-            else if (type == LevelCommandType.RepeatFromHere)
+            else if (commandType == LevelCommandType.SpawnOne)
+            {
+                LevelCommands.Add(new LevelSpawnOneCommand(commandNode.ChildNodes));
+            }
+            else if (commandType == LevelCommandType.SpawnGroup)
+            {
+                LevelCommands.Add(new LevelSpawnGroupCommand(commandNode.ChildNodes));
+            }
+            else if (commandType == LevelCommandType.RepeatFromHere)
             {
                 repeatFromIndex = LevelCommands.Count;
-                LevelCommands.Add(new LevelCommand(type));
-            }
-            else if (LevelCommand.FloatCommandEnums.Contains(type))
-            {
-                LevelCommands.Add(new LevelFloatCommand(type, parts[1]));
+                LevelCommands.Add(new LevelCommand(commandType));
             }
             else
             {
-                LevelCommands.Add(new LevelCommand(type));
+                LevelCommands.Add(new LevelCommand(commandType));
             }
         }
 
@@ -142,13 +192,12 @@ namespace SH.Level
         public readonly int RotationOffset;
         public readonly bool Mirrored;
 
-        public LevelPattern(string row)
+        public LevelPattern(XmlNode node)
         {
-            var parts = row.Split(',');
-            Pattern = new Pattern(parts[0]);
-            DistanceOffset = (float)Convert.ToDouble(parts[1]);
-            RotationOffset = Convert.ToInt32(parts[2]);
-            Mirrored = parts[3] == "1";
+            Pattern = new Pattern(node.InnerText);
+            DistanceOffset = (float)Convert.ToDouble(node.Attributes["offset"].Value);
+            RotationOffset = Convert.ToInt32(node.Attributes["rotate"].Value);
+            Mirrored = node.Attributes["mirrored"].Value == "1";
         }
     }
 

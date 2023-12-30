@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SHControls : MonoBehaviour
 {
-
     public float input;
     private SHPlayer player;
     private Rigidbody2D rb;

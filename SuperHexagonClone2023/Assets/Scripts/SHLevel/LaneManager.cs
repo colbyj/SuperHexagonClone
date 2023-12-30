@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using CustomExtensions;
 using System.Xml;
-using SH.Level;
+using SH.LevelScripting;
 
 /* Written by Parker Neufeld under the supervision of Regan Mandryk    
  * Property of The University of Saskatchewan Interaction Lab */
@@ -141,8 +141,10 @@ public class LaneManager : MonoBehaviour
     {
     }
 
-    public void SpawnThreats(LevelPattern nextPattern)
-    { 
+    public void SpawnThreats(LevelPattern nextPattern, float atRadius)
+    {
+        Debug.Log("Spawning threat: " + nextPattern.Pattern.FileName);
+
         foreach (var wall in nextPattern.Pattern.Walls)
         {
             float distanceOffset = nextPattern.DistanceOffset;
@@ -154,7 +156,9 @@ public class LaneManager : MonoBehaviour
                 sideIndex = lanesRequired - 1 - sideIndex;
             }
 
-            Lanes[sideIndex].SpawnThreat(wall.Height, wall.Distance + distanceOffset);
+            float wallDistance = atRadius + wall.Distance + distanceOffset;
+
+            Lanes[sideIndex].SpawnThreat(wall.Height, wallDistance);
         }
 
         if (!spawnedFirstThreat)
@@ -184,5 +188,25 @@ public class LaneManager : MonoBehaviour
         if (furthestThreat < (ThreatParameters.StartingRadius - DifficultyManager.Instance.PatternRadiusOffset))
             return true;
         return false;
+    }
+
+    public float GetThreatSpawnRadius()
+    {
+        float furthestThreat = 0.0f;
+
+        for (int i = 0; i < Lanes.Count; i++)
+        {
+            if (Lanes[i].GetFurthestThreat() > furthestThreat)
+            {
+                furthestThreat = Lanes[i].GetFurthestThreat();
+            }
+        }
+
+        if (furthestThreat < ThreatParameters.FirstThreatRadius)
+        {
+            return ThreatParameters.CurrentStartingRadius + DifficultyManager.Instance.PatternRadiusOffset;
+        }
+
+        return furthestThreat;
     }
 }

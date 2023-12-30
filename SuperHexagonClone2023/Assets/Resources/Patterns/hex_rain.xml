@@ -4,7 +4,7 @@
     <Wall>
         <Distance>0</Distance>
         <Height>3</Height>
-        <Side>1</Side>
+        <Side>0</Side>
     </Wall>
     <Wall>
         <Distance>0</Distance>
@@ -14,15 +14,20 @@
     <Wall>
         <Distance>0</Distance>
         <Height>3</Height>
-        <Side>3</Side>
-    </Wall>
-    <Wall>
-        <Distance>0</Distance>
-        <Height>3</Height>
         <Side>4</Side>
     </Wall>
     <Wall>
-        <Distance>0</Distance>
+        <Distance>10</Distance>
+        <Height>3</Height>
+        <Side>1</Side>
+    </Wall>
+    <Wall>
+        <Distance>10</Distance>
+        <Height>3</Height>
+        <Side>3</Side>
+    </Wall>
+    <Wall>
+        <Distance>10</Distance>
         <Height>3</Height>
         <Side>5</Side>
     </Wall>
@@ -34,11 +39,6 @@
     <Wall>
         <Distance>20</Distance>
         <Height>3</Height>
-        <Side>1</Side>
-    </Wall>
-    <Wall>
-        <Distance>20</Distance>
-        <Height>3</Height>
         <Side>2</Side>
     </Wall>
     <Wall>
@@ -47,33 +47,33 @@
         <Side>4</Side>
     </Wall>
     <Wall>
-        <Distance>20</Distance>
-        <Height>3</Height>
-        <Side>5</Side>
-    </Wall>
-    <Wall>
-        <Distance>40</Distance>
+        <Distance>30</Distance>
         <Height>3</Height>
         <Side>1</Side>
     </Wall>
     <Wall>
-        <Distance>40</Distance>
-        <Height>3</Height>
-        <Side>2</Side>
-    </Wall>
-    <Wall>
-        <Distance>40</Distance>
+        <Distance>30</Distance>
         <Height>3</Height>
         <Side>3</Side>
     </Wall>
     <Wall>
-        <Distance>40</Distance>
+        <Distance>30</Distance>
         <Height>3</Height>
-        <Side>4</Side>
+        <Side>5</Side>
     </Wall>
     <Wall>
         <Distance>40</Distance>
         <Height>3</Height>
-        <Side>5</Side>
+        <Side>0</Side>
+    </Wall>
+    <Wall>
+        <Distance>40</Distance>
+        <Height>3</Height>
+        <Side>2</Side>
+    </Wall>
+    <Wall>
+        <Distance>40</Distance>
+        <Height>3</Height>
+        <Side>4</Side>
     </Wall>
 </Pattern>

@@ -49,13 +49,14 @@ public class SHLane : MonoBehaviour
 
     //Spawning Functionality
 
-    public SHLine SpawnThreat(float thickness, float radiusOffset = 0)
+    public SHLine SpawnThreat(float thickness, float radius)
     { 
         SHLine threat = threatPool.Get();
 
         if (threat != null)
         {
-            threat.radius = ThreatParameters.CurrentStartingRadius + radiusOffset;
+            
+            threat.radius = radius;
 
             // Modify the thickness by current difficult level (as objects spawn faster as the game goes on)
             threat.thickness = thickness;// / FindObjectOfType<AccelerateDifficulty>().spawningDifficulty.GetValue();

@@ -1,4 +1,4 @@
-using SH.Level;
+using SH.LevelScripting;
 using System.Collections;
 using System.Linq;
 using UnityEngine;
@@ -20,7 +20,7 @@ public class LevelManager : MonoBehaviour
         experiment = FindObjectOfType<Experiment>();
 
         Level = new ParsedLevel();
-        Level.ParseLevelDefintion(LevelDefinition.text);
+        Level.ParseLevelXml(LevelDefinition.text);
         StartCoroutine(nameof(StartLevel));
     }
 
@@ -72,7 +72,7 @@ public class LevelManager : MonoBehaviour
         LevelCommand nextCommand = Level.NextCommand;
 
         // Try to handle any non-spawning events immediately. 
-        while (nextCommand.CommandType != LevelCommandType.Spawn)
+        while (nextCommand.CommandType != LevelCommandType.SpawnOne && nextCommand.CommandType != LevelCommandType.SpawnGroup)
         {
             if (LevelCommand.FloatCommandEnums.Contains(nextCommand.CommandType))
             {
@@ -120,9 +120,25 @@ public class LevelManager : MonoBehaviour
 
         if (Started && LaneManager.Instance.NeedToSpawnThreats())
         {
-            var spawnCommand = nextCommand as LevelSpawnCommand;
-            LaneManager.Instance.SpawnThreats(spawnCommand.ToSpawn);
-            Level.CommandHandled();
+            if (nextCommand.CommandType == LevelCommandType.SpawnOne)
+            {
+                var spawnCommand = nextCommand as LevelSpawnOneCommand;
+                LaneManager.Instance.SpawnThreats(spawnCommand.GetRandomToSpawn, LaneManager.Instance.GetThreatSpawnRadius());
+                Level.CommandHandled();
+            }
+            else if (nextCommand.CommandType == LevelCommandType.SpawnGroup)
+            {
+                var spawnCommand = nextCommand as LevelSpawnGroupCommand;
+                var threats = spawnCommand.GetRandomGroupToSpawn;
+
+                foreach (var threat in threats)
+                {
+                    // Need to update spawn radius each time
+                    LaneManager.Instance.SpawnThreats(threat, LaneManager.Instance.GetThreatSpawnRadius());
+                }
+
+                Level.CommandHandled();
+            }
         }
     }
 }

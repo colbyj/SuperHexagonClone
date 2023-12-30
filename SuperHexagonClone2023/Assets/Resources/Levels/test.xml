@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Commands>
+  <RotationDifficulty>0.75</RotationDifficulty>
+  <RotationDifficultyRate>0.01</RotationDifficultyRate>
+  <RotationDifficultyMax>2.5</RotationDifficultyMax>
+  <ThreatSpeed>12.5</ThreatSpeed>
+  <ThreatSpeedRate>0</ThreatSpeedRate>
+  <ThreatSpeedMax>20</ThreatSpeedMax>
+  <PlayerSpeed>5</PlayerSpeed>
+  <PatternRadiusOffset>0</PatternRadiusOffset>
+  <CWCamera />
+  <SpawnOne>
+    <Pattern offset="0" rotate="0" mirrored="0">hex_intro</Pattern>
+  </SpawnOne>
+  <RepeatFromHere />
+  <SpawnOne>
+    <Pattern offset="20" rotate="0" mirrored="0">hex_rain</Pattern>
+  </SpawnOne>
+  <SpawnOne>
+    <Pattern offset="20" rotate="0" mirrored="0">hex_oneway</Pattern>
+  </SpawnOne>
+  <SpawnOne>
+    <Pattern offset="20" rotate="0" mirrored="0">hex_spiral</Pattern>
+    <Pattern offset="20" rotate="0" mirrored="1">hex_spiral</Pattern>
+  </SpawnOne>
+  <SpawnGroup>
+    <PatternGroup>
+      <Pattern offset="20" rotate="0" mirrored="0">hex_c_hard</Pattern>
+      <Pattern offset="20" rotate="1" mirrored="0">hex_c_hard</Pattern>
+      <Pattern offset="20" rotate="2" mirrored="0">hex_c_hard</Pattern>
+    </PatternGroup>
+  </SpawnGroup>
+  <SpawnOne>
+    <Pattern offset="20" rotate="0" mirrored="0">hex_zig_zag_1_way</Pattern>
+    <Pattern offset="20" rotate="0" mirrored="1">hex_zig_zag_1_way</Pattern>
+  </SpawnOne>
+  <SpawnGroup>
+    <PatternGroup>
+      <Pattern offset="20" rotate="0" mirrored="0">hex_spiral</Pattern>
+      <Pattern offset="20" rotate="0" mirrored="1">hex_spiral</Pattern>
+    </PatternGroup>
+    <PatternGroup>
+      <Pattern offset="20" rotate="0" mirrored="0">hex_zig_zag_2_way_x2</Pattern>
+    </PatternGroup>
+  </SpawnGroup>
+</Commands>
