@@ -122,7 +122,7 @@ public class DifficultyManager : MonoBehaviour
 
     void UpdateDifficulty()
     {
-        if (LevelManager.Instance.Started)
+        if (LevelManager.Instance != null && LevelManager.Instance.Started)
         {
             RotationDifficultyAccelerator.IncreaseDifficulty();
             ThreatDifficultyAccelerator.IncreaseDifficulty();

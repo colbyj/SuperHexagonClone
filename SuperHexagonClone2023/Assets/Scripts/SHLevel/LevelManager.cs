@@ -46,7 +46,7 @@ public class LevelManager : MonoBehaviour
     /// </summary>
     public void BeginLevel()
     {
-        if (experiment.state != Experiment.SHGameState.Playing)
+        if (experiment != null && experiment.state != Experiment.SHGameState.Playing)
         {
             // We shouldn't be here... Try again in a second
             Invoke(nameof(BeginLevel), 1.0f);

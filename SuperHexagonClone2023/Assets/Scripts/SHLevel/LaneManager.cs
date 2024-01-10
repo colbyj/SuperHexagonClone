@@ -39,6 +39,7 @@ public class LaneManager : MonoBehaviour
 
     public List<SHLane> Lanes = new List<SHLane>();
     private bool spawnedFirstThreat = false;
+    public bool Paused = false;
 
     void Awake()
     {
@@ -137,21 +138,19 @@ public class LaneManager : MonoBehaviour
     }
     #endregion
 
-    private void Update()
-    {
-    }
-
     public void SpawnThreats(LevelPattern nextPattern, float atRadius)
     {
-        Debug.Log("Spawning threat: " + nextPattern.Pattern.FileName);
+        SpawnThreats(nextPattern.Pattern, atRadius, nextPattern.RotationOffset, nextPattern.RotationOffset, nextPattern.Mirrored);
+    }
 
-        foreach (var wall in nextPattern.Pattern.Walls)
+    public void SpawnThreats(Pattern nextPattern, float atRadius, int rotationOffset = 0, int distanceOffset = 0, bool mirrored = false)
+    {
+        //Debug.Log("Spawning threat: " + nextPattern.Pattern.FileName);
+
+        foreach (var wall in nextPattern.Walls)
         {
-            float distanceOffset = nextPattern.DistanceOffset;
-            int rotationOffset = nextPattern.RotationOffset;
-
             int sideIndex = (wall.Side + rotationOffset) % lanesRequired;
-            if (nextPattern.Mirrored)
+            if (mirrored)
             {
                 sideIndex = lanesRequired - 1 - sideIndex;
             }
@@ -207,6 +206,6 @@ public class LaneManager : MonoBehaviour
             return ThreatParameters.CurrentStartingRadius + DifficultyManager.Instance.PatternRadiusOffset;
         }
 
-        return furthestThreat;
+        return furthestThreat + DifficultyManager.Instance.PatternRadiusOffset;
     }
 }

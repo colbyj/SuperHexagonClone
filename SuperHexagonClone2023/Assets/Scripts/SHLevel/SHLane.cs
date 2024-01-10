@@ -64,6 +64,8 @@ public class SHLane : MonoBehaviour
             // Reset the position and rotation of the line/threat.
             threat.transform.position = new Vector3(0f, 0f, -0.2f);
             threat.transform.rotation = gameObject.transform.rotation;
+
+            threat.UpdatePolygon();
         }
 
         return threat;

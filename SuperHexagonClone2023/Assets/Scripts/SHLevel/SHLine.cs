@@ -1,10 +1,12 @@
 ﻿using CustomExtensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using UnityEngine;
-
+using UnityEngine.EventSystems;
 
 /// <summary>
 /// This draws the lines which act as obstacles as well as the central hexagon.
@@ -16,58 +18,108 @@ using UnityEngine;
 [RequireComponent(typeof(EdgeCollider2D))]
 public class SHLine : MonoBehaviour
 {
+    [Header("Display Parameters")]
     /// <summary>
     /// Distance from the centre of the game. (Inner radius)
     /// </summary>
     public float radius = ThreatParameters.StartingRadius;
     public float thickness = ThreatParameters.DefaultThickness;
     public int laneCount = 6;  // This gets set by LaneThreat
+
+    [Header("Position Parameters")]
     /// <summary>
     /// Radial velocity in radii per second.
     /// </summary>
     public float velocity = 0f;
     public Vector3[] points;
+
     private PolygonCollider2D polyCol;
     private EdgeCollider2D edgeCol;
+    private MeshRenderer meshRenderer;
 
     // To avoid wasting memory, only create an use one mesh object
     private Mesh mesh;
     private int[] indicies;
 
-    // Use this for initialization
-    void Start()
+    public static Action SelectedThreatChanged;
+    public static SHLine selectedLine 
     {
-        transform.position = new Vector3(0f, 0f, -0.2f);
-        polyCol = GetComponent<PolygonCollider2D>();
-        edgeCol = GetComponent<EdgeCollider2D>();
+        get { return _selectedLine; }
+        set { 
+            _selectedLine = value;
+            if (SelectedThreatChanged != null)
+                SelectedThreatChanged.Invoke();
+        }
+    }
+    private static SHLine _selectedLine = null;
+    private bool _isSelected = false;
+    public bool isSelected 
+    {
+        get
+        {
+            return _isSelected;
+        }
+        set
+        {
+            if (value == true && selectedLine != null && selectedLine != this)
+            { 
+                // Ensure if we are selecting something that any other line that was selected is now not selected.
+                selectedLine.isSelected = false;
+                selectedLine = null;
+            }
 
-        laneCount = LaneManager.lanesRequired;
+            _isSelected = value;
+            if (value)
+            {
+                meshRenderer.material = editMaterial;
+                selectedLine = this;
+            }
+            else
+            {
+                meshRenderer.material = standardMaterial;
+                selectedLine = null;
+            }
+        }
+    }
+    
+    // Materials
+    public Material standardMaterial;
+    public Material editMaterial;
 
-        mesh = new Mesh();
-        points = new Vector3[4];
-        UpdatePoints();
 
-        // The indicies need to be done once, since there will always be the same number of points in the same order.
-        Triangulator tri = new Triangulator(points);
-        indicies = tri.Triangulate();
-
-        UpdateMesh();
-
-        GetComponent<MeshFilter>().mesh = mesh;
+    // Use this for initialization
+    void Awake()
+    {
+        Init();
     }
 
     void OnEnable()
     {
-        transform.position = new Vector3(0f, 0f, -0.2f);
+        Init(true);
+    }
 
+    public void Init(bool resetPosition = false)
+    {
+        transform.position = new Vector3(0f, 0f, -0.2f);
         polyCol = GetComponent<PolygonCollider2D>();
         edgeCol = GetComponent<EdgeCollider2D>();
+        meshRenderer = GetComponent<MeshRenderer>();
 
-        if (tag == "Threat")
+        if (standardMaterial == null)
+        {
+            standardMaterial = meshRenderer.material;
+        }
+        else
+        {
+            meshRenderer.material = standardMaterial;
+        }
+
+        if (tag == "Threat" && resetPosition)
         {
             radius = ThreatParameters.StartingRadius;
             velocity = DifficultyManager.Instance.ThreatSpeed;
         } // what is set in the prefab is ignored
+
         laneCount = LaneManager.lanesRequired;
 
         mesh = new Mesh();
@@ -78,7 +130,7 @@ public class SHLine : MonoBehaviour
         Triangulator tri = new Triangulator(points);
         indicies = tri.Triangulate();
 
-        UpdateMesh();
+        UpdatePolygon();
 
         GetComponent<MeshFilter>().mesh = mesh;
     }
@@ -86,6 +138,9 @@ public class SHLine : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        if (LaneManager.Instance.Paused)
+            return;
+
         radius -= velocity * Time.deltaTime;
 
         // Threats are removed by SHLane.
@@ -126,7 +181,6 @@ public class SHLine : MonoBehaviour
     {
         mesh.vertices = points;
         mesh.triangles = indicies;
-
     }
 
     public float GetAngle()
@@ -156,5 +210,10 @@ public class SHLine : MonoBehaviour
         thickness = ThreatParameters.DefaultThickness;
         velocity = 0;
         UpdatePolygon();
+    }
+
+    public void OnMouseDown()
+    {
+        isSelected = !isSelected;
     }
 }
