@@ -1,58 +1,69 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.SHPlayer;
 using UnityEngine;
 
 public class Playback : MonoBehaviour
 {
 
-    public string movementsCSV;
-    private string movementsCSVDecrypted;
-    public bool movementsIsCompressed = true;
+    public string MovementsCsv;
+    private string _movementsCsvDecrypted;
+    public bool MovementsIsCompressed = true;
 
-    private List<Experiment.Movement> movements;
-    private float startTime = 0f;
+    private List<Experiment.Movement> _movements;
+    private float _startTime = 0f;
 
-    private SHControls controls;
-    private SHPlayer player;
+    private PlayerBehavior _controls;
+    private PlayerPolygon _playerPolygon;
 
     // Use this for initialization
     void Start()
     {
-        if (movementsIsCompressed)
+        if (MovementsIsCompressed)
         {
-            movementsCSVDecrypted = StringCompressor.DecompressString(movementsCSV);
+            _movementsCsvDecrypted = StringCompressor.DecompressString(MovementsCsv);
         }
         else
         {
-            movementsCSVDecrypted = movementsCSV;
+            _movementsCsvDecrypted = MovementsCsv;
         }
 
-        movements = new List<Experiment.Movement>();
+        _movements = new List<Experiment.Movement>();
 
-        string[] movementsCSVSplit = movementsCSVDecrypted.Split(';');
+        string[] movementsCsvSplit = _movementsCsvDecrypted.Split(';');
 
-        for (int i = 0; i < movementsCSVSplit.Length; i++)
+        for (int i = 0; i < movementsCsvSplit.Length; i++)
         {
-            if (movementsCSVSplit[i].Length == 0) continue;
-            movements.Add(new Experiment.Movement(movementsCSVSplit[i]));
+            if (movementsCsvSplit[i].Length == 0)
+            {
+                continue;
+            }
+
+            _movements.Add(new Experiment.Movement(movementsCsvSplit[i]));
         }
 
         //movements = Array.ConvertAll(movementsCSV.Split(','), s => int.Parse(s));
 
-        controls = FindObjectOfType<SHControls>();
-        player = FindObjectOfType<SHPlayer>();
+        _controls = FindObjectOfType<PlayerBehavior>();
+        _playerPolygon = FindObjectOfType<PlayerPolygon>();
 
-        player.GetComponent<CircleCollider2D>().enabled = false;
+        _playerPolygon.GetComponent<CircleCollider2D>().enabled = false;
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (!LevelManager.Instance.Started) return;
+        if (!PlayerBehavior.IsDead)
+        {
+            return;
+        }
 
-        if (startTime == 0f) startTime = Time.time;
+        if (_startTime == 0f)
+        {
+            _startTime = Time.time;
+        }
 
         //Debug.Log(Time.deltaTime);
 
@@ -61,11 +72,11 @@ public class Playback : MonoBehaviour
         float indexTimeSum = 0f;
         int index = 0;
 
-        for (int i = 0; i < movements.Count; i++)
+        for (int i = 0; i < _movements.Count; i++)
         {
-            indexTimeSum += movements[i].deltaTime;
+            indexTimeSum += _movements[i].DeltaTime;
 
-            if (indexTimeSum > Time.time - startTime)
+            if (indexTimeSum > Time.time - _startTime)
             {
                 index = i;
                 break;
@@ -73,24 +84,24 @@ public class Playback : MonoBehaviour
         }
 
         // Make sure we aren't at the end of the data
-        if (index + 1 >= movements.Count)
+        if (index + 1 >= _movements.Count)
         {
             FindObjectOfType<DisplayMessage>().AddMessage("It's over", 2.0f);
             enabled = false;
             return;
         }
 
-        float currentRotation = movements[index].rotation;
-        float nextRotation = movements[index + 1].rotation;
+        float currentRotation = _movements[index].Rotation;
+        float nextRotation = _movements[index + 1].Rotation;
 
-        float timeSinceCurrent = indexTimeSum - (Time.time - startTime);
-        float progress = (movements[index + 1].deltaTime - timeSinceCurrent) / movements[index + 1].deltaTime;
+        float timeSinceCurrent = indexTimeSum - (Time.time - _startTime);
+        float progress = (_movements[index + 1].DeltaTime - timeSinceCurrent) / _movements[index + 1].DeltaTime;
         float lerpedRotation = Mathf.LerpAngle(currentRotation, nextRotation, progress);
 
         //Debug.Log("indexTimeSum = " + indexTimeSum + ", timeSinceCurrent = " + timeSinceCurrent + ", progress = " + progress);
 
         Quaternion currentQuat = Quaternion.Euler(new Vector3(0f, 0f, lerpedRotation));
-        controls.transform.SetPositionAndRotation(Vector3.zero, currentQuat);
+        _controls.transform.SetPositionAndRotation(Vector3.zero, currentQuat);
 
     }
 }

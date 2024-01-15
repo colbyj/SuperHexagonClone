@@ -6,18 +6,18 @@ using UnityEngine;
 [RequireComponent(typeof(MeshRenderer))]
 public class MeshFromPoints : MonoBehaviour 
 {
-    public Vector2[] points;
-    public bool invert;
-    [SerializeField] private PolygonCollider2D polygonCollider;
+    public Vector2[] Points;
+    public bool Invert;
+    [SerializeField] private PolygonCollider2D _polygonCollider;
 
-    void Start() 
+    internal virtual void Awake() 
     {
-        Triangulator tri = new Triangulator(points);
-        GetComponent<MeshFilter>().mesh = tri.CreateMesh(invert);
+        Triangulator tri = new Triangulator(Points);
+        GetComponent<MeshFilter>().mesh = tri.CreateMesh(Invert);
 
-        if (polygonCollider != null)
+        if (_polygonCollider != null)
         {
-            polygonCollider.SetPath(0, points);
+            _polygonCollider.SetPath(0, Points);
         }
     }
 }

@@ -47,16 +47,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   UpdateRate: 1
   RotationDifficultyAccelerator:
-    value: 0
-    increaseBy: 0
-    startingValue: 1
-    ceilingValue: 10
+    _value: 0
+    IncreaseBy: 0
+    StartingValue: 1
+    CeilingValue: 10
   ThreatDifficultyAccelerator:
-    value: 0
-    increaseBy: 0
-    startingValue: 20
-    ceilingValue: 10
-  PlayerRotationRate: 6
+    _value: 0
+    IncreaseBy: 0
+    StartingValue: 20
+    CeilingValue: 10
+  PlayerRotationRate: 300
   PatternRadiusOffset: 10
 --- !u!114 &5742505765244433874
 MonoBehaviour:
@@ -72,8 +72,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Level:
     LevelCommands: []
-    currentIndex: 0
-    repeatFromIndex: 0
-  LevelDefinition: {fileID: 4900000, guid: 5d50d50b0d6673442957095d8f554dd9, type: 3}
-  Started: 0
+    _currentIndex: 0
+    _repeatFromIndex: 0
+  LevelDefinition: {fileID: 4900000, guid: d8550b988109d614a8aae0debf6a5242, type: 3}
   ShowInstructions: 0

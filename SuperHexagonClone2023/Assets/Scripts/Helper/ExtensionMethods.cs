@@ -84,7 +84,9 @@ namespace CustomExtensions
             {
                 T result = t.GetComponent<T>();
                 if (result != null)
+                {
                     return result;
+                }
             }
 
             return null;
@@ -97,7 +99,9 @@ namespace CustomExtensions
             {
                 T result = t.GetComponent<T>();
                 if (result != null)
+                {
                     results.Add(result);
+                }
             }
 
             return results.ToArray();
@@ -106,10 +110,10 @@ namespace CustomExtensions
         //https://answers.unity.com/questions/1034471/c-convert-vector3-to-vector2.html
         public static Vector2[] ToVector2Array(this Vector3[] v3)
         {
-            return System.Array.ConvertAll<Vector3, Vector2>(v3, GetV3fromV2);
+            return System.Array.ConvertAll<Vector3, Vector2>(v3, GetV3FromV2);
         }
 
-        public static Vector2 GetV3fromV2(Vector3 v3)
+        public static Vector2 GetV3FromV2(Vector3 v3)
         {
             return new Vector2(v3.x, v3.y);
         }

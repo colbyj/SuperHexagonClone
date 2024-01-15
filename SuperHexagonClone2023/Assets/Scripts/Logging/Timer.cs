@@ -6,27 +6,27 @@ using UnityEngine.UI;
 public class Timer : MonoBehaviour
 {
     [Header("Time Settings")]
-    public float curTime;
-    public Text t;
+    public float CurTime;
+    public Text T;
 
     private void Awake()
     {
-        t = GetComponentInChildren<Text>();
-        if (t == null)
+        T = GetComponentInChildren<Text>();
+        if (T == null)
         {
             throw new UnityException(gameObject.name + " not properly configured : NO TEXT BOX FOUND");
         }
     }
     void FixedUpdate()
     {
-        curTime += Time.fixedDeltaTime;
-        t.text = curTime.ToString("#.00");
+        CurTime += Time.fixedDeltaTime;
+        T.text = CurTime.ToString("#.00");
 
     }
 
     public void Reset()
     {
-        curTime = 0;
+        CurTime = 0;
 
     }
 }

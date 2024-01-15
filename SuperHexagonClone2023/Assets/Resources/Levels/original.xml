@@ -6,7 +6,7 @@
   <ThreatSpeed>12.5</ThreatSpeed>
   <ThreatSpeedRate>0</ThreatSpeedRate>
   <ThreatSpeedMax>20</ThreatSpeedMax>
-  <PlayerSpeed>5</PlayerSpeed>
+  <PlayerSpeed>300</PlayerSpeed>
   <PatternRadiusOffset>0</PatternRadiusOffset>
   <CWCamera />
   <RepeatFromHere />

@@ -3,10 +3,10 @@ using System.Collections;
 
 public class FrameLimiter : MonoBehaviour 
 {
-    public int targetFps = 60;
+    public int TargetFps = 60;
 
     void Awake() 
     {
-        Application.targetFrameRate = targetFps;
+        Application.targetFrameRate = TargetFps;
     }
 }

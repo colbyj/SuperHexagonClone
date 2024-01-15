@@ -1,29 +1,30 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Assets.Scripts.SHPlayer;
 using UnityEngine;
 
 [Serializable]
-public class SHResponse
+public class ShResponse
 {
-    public double startTime;
-    public double endTime;
-    public double startAngle;
-    public double endAngle;
-    public bool isClockwise;
+    public double StartTime;
+    public double EndTime;
+    public double StartAngle;
+    public double EndAngle;
+    public bool IsClockwise;
 }
 
 [Serializable]
-public class SHAction
+public class ShAction
 {
-    public SHResponse manditoryResponse;
-    public SHResponse playerResponse;
-    public bool wasSuccessful;
+    public ShResponse ManditoryResponse;
+    public ShResponse PlayerResponse;
+    public bool WasSuccessful;
 
-    public SHAction()
+    public ShAction()
     {
-        manditoryResponse = new SHResponse();
-        playerResponse = new SHResponse();
+        ManditoryResponse = new ShResponse();
+        PlayerResponse = new ShResponse();
     }
 }
 
@@ -32,42 +33,42 @@ public class SHAction
 
 public class PlayerProgressLog : MonoBehaviour
 {
-    Experiment experiment;
-    SHSBehavior solver;
-    SHControls controls;
+    Experiment _experiment;
+    SHSBehavior _solver;
+    PlayerBehavior _controls;
 
     void Start()
     {
-        experiment = GameObject.FindObjectOfType<Experiment>();
-        solver = GameObject.FindObjectOfType<SHSBehavior>();
-        controls = GameObject.FindObjectOfType<SHControls>();
+        _experiment = GameObject.FindObjectOfType<Experiment>();
+        _solver = GameObject.FindObjectOfType<SHSBehavior>();
+        _controls = GameObject.FindObjectOfType<PlayerBehavior>();
     }
 
-    float previousInput;
+    float _previousInput;
 
-    public List<SHAction> actions;
-    private SHAction currentAction;
+    public List<ShAction> Actions;
+    private ShAction _currentAction;
 
     void Update()
     {
-        if (controls.input != previousInput)
+        if (_controls.Input != _previousInput)
         { // The user's input has changed!
-            if (currentAction != null)
+            if (_currentAction != null)
             {
-                currentAction.playerResponse.endAngle = controls.GetAngle();
-                currentAction.playerResponse.endTime = experiment.timerTrial.value;
+                _currentAction.PlayerResponse.EndAngle = _controls.GetAngle();
+                _currentAction.PlayerResponse.EndTime = _experiment.TimerTrial.Value;
 
-                actions.Add(currentAction);
-                currentAction = null;
+                Actions.Add(_currentAction);
+                _currentAction = null;
             }
-            else if (controls.input != 0)
+            else if (_controls.Input != 0)
             {
-                currentAction = new SHAction();
-                currentAction.playerResponse.isClockwise = controls.input > 0;
-                currentAction.playerResponse.startAngle = controls.GetAngle();
-                currentAction.playerResponse.startTime = experiment.timerTrial.value;
+                _currentAction = new ShAction();
+                _currentAction.PlayerResponse.IsClockwise = _controls.Input > 0;
+                _currentAction.PlayerResponse.StartAngle = _controls.GetAngle();
+                _currentAction.PlayerResponse.StartTime = _experiment.TimerTrial.Value;
             }
-            previousInput = controls.input;
+            _previousInput = _controls.Input;
         }
 
     }

@@ -3,6 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.LevelVisuals;
+using Assets.Scripts.SHPlayer;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -13,31 +17,31 @@ public partial class Experiment : MonoBehaviour
     public delegate void TimerDelegate();
 
     [Serializable]
-    public class SHTimer
+    public class ShTimer
     {
-        public Text guiText;
-        public float value;
-        public float initialValue = 0f; // What the timer gets set to on Reset()
-        public bool paused = false;
-        public bool countUp = true;
-        public float? maxValue = null;
-        public float? minValue = null;
-        public int tickLength = 0; // Used for logging between sessions
+        public Text GuiText;
+        public float Value;
+        public float InitialValue = 0f; // What the timer gets set to on Reset()
+        public bool Paused = false;
+        public bool CountUp = true;
+        public float? MaxValue = null;
+        public float? MinValue = null;
+        public int TickLength = 0; // Used for logging between sessions
 
         public event TimerDelegate TimerFinished;
         public event TimerDelegate TimerTick;
 
         public void Update(float seconds)
         {
-            if (paused)
+            if (Paused)
             {
                 return;
             }
 
-            if (countUp)
+            if (CountUp)
             {
                 // Because this is on Update(), only check this when we are crossing to a new integer (e.g., 4.99 to 5.00).
-                if ((int)value != (int)(value + seconds) && tickLength != 0 && (int)value % tickLength == 0)
+                if ((int)Value != (int)(Value + seconds) && TickLength != 0 && (int)Value % TickLength == 0)
                 {
                     if (TimerTick != null)
                     {
@@ -45,11 +49,11 @@ public partial class Experiment : MonoBehaviour
                     }
                 }
 
-                value += seconds;
+                Value += seconds;
 
-                if (maxValue.HasValue && value >= maxValue)
+                if (MaxValue.HasValue && Value >= MaxValue)
                 {
-                    value = maxValue.Value;
+                    Value = MaxValue.Value;
                     Stop();
                     if (TimerFinished != null)
                     {
@@ -60,7 +64,7 @@ public partial class Experiment : MonoBehaviour
             else
             {
                 // Same
-                if ((int)value != (int)(value - seconds) && tickLength != 0 && (int)value % tickLength == 0)
+                if ((int)Value != (int)(Value - seconds) && TickLength != 0 && (int)Value % TickLength == 0)
                 {
                     if (TimerTick != null)
                     {
@@ -68,11 +72,11 @@ public partial class Experiment : MonoBehaviour
                     }
                 }
 
-                value -= seconds;
+                Value -= seconds;
 
-                if (minValue.HasValue && value <= minValue)
+                if (MinValue.HasValue && Value <= MinValue)
                 {
-                    value = minValue.Value;
+                    Value = MinValue.Value;
                     Stop();
                     if (TimerFinished != null)
                     {
@@ -80,30 +84,28 @@ public partial class Experiment : MonoBehaviour
                     }
                 }
             }
-
-
         }
 
         public void Reset()
         {
-            value = initialValue;
+            Value = InitialValue;
         }
 
         public void Stop()
         {
-            paused = true;
+            Paused = true;
         }
 
         public void Start()
         {
-            paused = false;
+            Paused = false;
         }
 
         public void UpdateDisplay()
         {
-            if (guiText != null)
+            if (GuiText != null)
             {
-                guiText.text = value.ToString("#.00");
+                GuiText.text = Value.ToString("#.00");
             }
         }
 
@@ -111,13 +113,13 @@ public partial class Experiment : MonoBehaviour
 
     public class Movement
     {
-        public float deltaTime;
-        public int rotation;
+        public float DeltaTime;
+        public int Rotation;
 
         public Movement(float deltaTime, int rotation)
         {
-            this.deltaTime = deltaTime;
-            this.rotation = rotation;
+            this.DeltaTime = deltaTime;
+            this.Rotation = rotation;
         }
 
         public Movement(string csv)
@@ -127,13 +129,13 @@ public partial class Experiment : MonoBehaviour
                 csv = csv.Remove(csv.Length, 1); // Remove trailing delimiter.
             }
             string[] movementParts = csv.Split(',');
-            this.deltaTime = float.Parse(movementParts[0]);
-            this.rotation = int.Parse(movementParts[1]);
+            this.DeltaTime = float.Parse(movementParts[0]);
+            this.Rotation = int.Parse(movementParts[1]);
         }
 
-        public string CSV()
+        public string Csv()
         {
-            return string.Format("{0},{1};", deltaTime, rotation);
+            return string.Format("{0},{1};", DeltaTime, Rotation);
         }
     }
 
@@ -143,24 +145,24 @@ public partial class Experiment : MonoBehaviour
         /// <summary>
         /// Time until the next trial start
         /// </summary>
-        public float interTrialTime;
+        public float InterTrialTime;
         /// <summary>
         /// Time to wait before beginning this session (ignored on first session)
         /// </summary>
-        public float interSessionTime;
+        public float InterSessionTime;
         /// <summary>
         /// How long you want the session to last (seconds).
         /// </summary>
-        public float sessionTime;
+        public float SessionTime;
     }
 
-    public enum SHGameState { Loading, Playing, InterTrialBreak, InterSessionBreak };
+    public enum ShGameState { Loading, Playing, InterTrialBreak, InterSessionBreak };
 
-    public SHGameState state;
-    public bool playSoundOnSessionStart = true;
+    public ShGameState State;
+    public bool PlaySoundOnSessionStart = true;
 
-    private int trialFrames = 0;
-    private bool newHighScore = false;
+    private int _trialFrames = 0;
+    private bool _newHighScore = false;
 
     //public SHLevelNew levelManager;
     //public StageConstructor stageConstructor;
@@ -168,55 +170,56 @@ public partial class Experiment : MonoBehaviour
     // consider a "SHTimer" class with value, text, direction
 
     // Current trial and session
-    public SHTimer timerTrial = new SHTimer();
-    public SHTimer timerBest = new SHTimer();
-    public SHTimer timerSession = new SHTimer();
+    public ShTimer TimerTrial = new ShTimer();
+    public ShTimer TimerBest = new ShTimer();
+    public ShTimer TimerSession = new ShTimer();
 
-    public SHTimer interTrialTimer = new SHTimer();
-    public SHTimer interSessionTimer = new SHTimer();
+    public ShTimer InterTrialTimer = new ShTimer();
+    public ShTimer InterSessionTimer = new ShTimer();
 
     [Header("Required Game Objects")]
-    public Text message;
-    public Text countdown;
-    public Text interSessionText;
-    public AudioSource alert;
+    public TMP_Text Message;
+    public TMP_Text Countdown;
+    public TMP_Text InterSessionText;
+    public AudioSource Alert;
+    public AudioSource Success;
 
     [Header("Experiment Settings (Editor Only)")]
-    public bool startFullScreen;
+    public bool StartFullScreen;
 
-    public float interSessionTimeRemaining
+    public float InterSessionTimeRemaining
     {
-        get { return interSessionTimer.value; }
-        set { interSessionTimer.value = value; }
+        get { return InterSessionTimer.Value; }
+        set { InterSessionTimer.Value = value; }
     }
 
-    public List<SessionParameters> sessions = new List<SessionParameters>();
+    public List<SessionParameters> Sessions = new List<SessionParameters>();
 
     [Header("Server Settings (Editor Only)")]
-    public string serverUrl;
-    public int participantID = 1;
+    public string ServerUrl;
+    public int ParticipantId = 1;
 
 
     [Header("Experiment State")]
-    public int sessionNumber = 0;
-    public int trialNumber = 0;
-    private float sessionTimeRemaining
+    public int SessionNumber = 0;
+    public int TrialNumber = 0;
+    private float SessionTimeRemaining
     {
-        get { return timerSession.value; }
-        set { timerSession.value = value; }
+        get { return TimerSession.Value; }
+        set { TimerSession.Value = value; }
     }
-    private float maxDuration
+    private float MaxDuration
     {
-        get { return timerBest.value; }
-        set { timerBest.value = value; }
+        get { return TimerBest.Value; }
+        set { TimerBest.Value = value; }
     }
 
     // Variables for logging player actions.
     [Header("Movement Logging")]
-    List<Movement> movements = new List<Movement>();
-    float timeLastMovementLogged = 0f; // In-game time indicating when movement was last logged
-    public float timeDeltaMovement = 0.150f; // In seconds
-    SHControls playerControls;
+    List<Movement> _movements = new List<Movement>();
+    float _timeLastMovementLogged = 0f; // In-game time indicating when movement was last logged
+    public float TimeDeltaMovement = 0.150f; // In seconds
+    PlayerBehavior _playerControls;
 
     private void Awake()
     {
@@ -226,19 +229,19 @@ public partial class Experiment : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        if (startFullScreen)
+        if (StartFullScreen)
         {
             Screen.fullScreen = true;
         }
 
         if (!Debug.isDebugBuild)
         {
-            serverUrl = "";
-            participantID = 0;
+            ServerUrl = "";
+            ParticipantId = 0;
         }
 
-        playerControls = FindObjectOfType<SHControls>();
-        state = SHGameState.Loading;
+        _playerControls = FindObjectOfType<PlayerBehavior>();
+        State = ShGameState.Loading;
         StartCoroutine(LoadSettings(AfterSetttingsLoaded));
     }
 
@@ -247,84 +250,100 @@ public partial class Experiment : MonoBehaviour
     {
         float deltaT = Time.deltaTime;
 
-        if (state == SHGameState.Playing)
+        if (State == ShGameState.Playing)
         {
-            if (!LevelManager.Instance.Started) return;
-
-            trialFrames++;
-            timerTrial.Update(deltaT);
-            timerSession.Update(deltaT);
-
-            if (timeDeltaMovement + timeLastMovementLogged < Time.time)
+            /*if (!LevelManager.Instance.Started)
             {
-                movements.Add(new Movement(Time.time - timeLastMovementLogged, (int)playerControls.transform.eulerAngles.z));
-                timeLastMovementLogged = Time.time;
+                return;
+            }*/
+
+            _trialFrames++;
+            TimerTrial.Update(deltaT);
+            TimerSession.Update(deltaT);
+
+            if (TimeDeltaMovement + _timeLastMovementLogged < Time.time)
+            {
+                _movements.Add(new Movement(Time.time - _timeLastMovementLogged, (int)_playerControls.transform.eulerAngles.z));
+                _timeLastMovementLogged = Time.time;
             }
 
-            if (timerTrial.value >= timerBest.value)
+            if (TimerTrial.Value >= TimerBest.Value)
             {  // Has the player reached a new high score?
-                timerBest.value = timerTrial.value;
+                TimerBest.Value = TimerTrial.Value;
 
-                if (!newHighScore && trialNumber > 0)
+                if (!_newHighScore && TrialNumber > 0)
                 {
-                    newHighScore = true;
+                    _newHighScore = true;
                     FindObjectOfType<DisplayMessage>().AddMessageToTop("New high score!", 2f);
+                    Success.Play();
                 }
             }
 
-            timerTrial.UpdateDisplay();
-            timerBest.UpdateDisplay();
+            TimerTrial.UpdateDisplay();
+            TimerBest.UpdateDisplay();
         }
-        else if (state == SHGameState.InterTrialBreak)
+        else if (State == ShGameState.InterTrialBreak)
         {
-            message.enabled = true;
-            message.text = "Be ready in...";
+            Message.enabled = true;
+            Message.text = "Be ready in...";
 
-            timerSession.Update(deltaT);
-            interTrialTimer.Update(deltaT);
+            TimerSession.Update(deltaT);
+            InterTrialTimer.Update(deltaT);
 
-            countdown.text = Mathf.CeilToInt(interTrialTimer.value).ToString();
+            Countdown.text = Mathf.CeilToInt(InterTrialTimer.Value).ToString();
         }
-        else if (state == SHGameState.InterSessionBreak)
+        else if (State == ShGameState.InterSessionBreak)
         {
-            message.enabled = true;
-            message.text = "The next session will begin in...";
+            Message.enabled = true;
+            Message.text = "The next session will begin in...";
 
-            if (InterSessionTime() != InterTrialTime() || sessionNumber == 0)
+            if (InterSessionTime() != InterTrialTime() || SessionNumber == 0)
             {
-                interSessionText.enabled = true;
+                InterSessionText.enabled = true;
             }
 
-            interSessionTimer.Update(deltaT);
+            InterSessionTimer.Update(deltaT);
 
-            countdown.text = Mathf.CeilToInt(interSessionTimer.value).ToString();
+            Countdown.text = Mathf.CeilToInt(InterSessionTimer.Value).ToString();
         }
 
-        timerSession.UpdateDisplay();
+        TimerSession.UpdateDisplay();
     }
 
     #region Access to session parameters.
     public int TotalSessions()
     {
-        return sessions.Count;
+        return Sessions.Count;
     }
 
     public float InterTrialTime()
     {
-        if (sessionNumber >= sessions.Count) return 0.0f;
-        return sessions[sessionNumber].interTrialTime;
+        if (SessionNumber >= Sessions.Count)
+        {
+            return 0.0f;
+        }
+
+        return Sessions[SessionNumber].InterTrialTime;
     }
 
     public float InterSessionTime()
     {
-        if (sessionNumber >= sessions.Count) return 0.0f;
-        return sessions[sessionNumber].interSessionTime;
+        if (SessionNumber >= Sessions.Count)
+        {
+            return 0.0f;
+        }
+
+        return Sessions[SessionNumber].InterSessionTime;
     }
 
     public float SessionTime()
     {
-        if (sessionNumber >= sessions.Count) return 0.0f;
-        return sessions[sessionNumber].sessionTime;
+        if (SessionNumber >= Sessions.Count)
+        {
+            return 0.0f;
+        }
+
+        return Sessions[SessionNumber].SessionTime;
     }
     #endregion
 
@@ -341,36 +360,36 @@ public partial class Experiment : MonoBehaviour
 
     public void EndSession(bool onGameStart)
     {
-        timerTrial.Stop();
+        TimerTrial.Stop();
         LaneManager.Instance.ResetLanes();
         LevelManager.Instance.StopLevel();
 
         if (!onGameStart)
         {
             SaveTrial(true);
-            trialNumber++;
+            TrialNumber++;
             SaveState();
-            sessionNumber++;
+            SessionNumber++;
 
-            interSessionTimer.Reset();
+            InterSessionTimer.Reset();
         }
 
-        interSessionTimer.Start();
+        InterSessionTimer.Start();
 
         // Set message in update loop, due to interference with DisplayMessage
-        countdown.enabled = true;
+        Countdown.enabled = true;
 
-        if (sessionNumber >= TotalSessions())
+        if (SessionNumber >= TotalSessions())
         {
-            state = SHGameState.Loading;
-            message.text = "Thanks for playing!";
-            message.enabled = true;
-            countdown.enabled = false;
+            State = ShGameState.Loading;
+            Message.text = "Thanks for playing!";
+            Message.enabled = true;
+            Countdown.enabled = false;
             Invoke("EndGame", 1.0f);
         }
         else
         {
-            state = SHGameState.InterSessionBreak;
+            State = ShGameState.InterSessionBreak;
         }
     }
 
@@ -378,16 +397,16 @@ public partial class Experiment : MonoBehaviour
     {
         ReloadTimerSettings();
 
-        if (InterSessionTime() != InterTrialTime() || sessionNumber == 0)
+        if (InterSessionTime() != InterTrialTime() || SessionNumber == 0)
         {
-            interSessionText.enabled = false;
+            InterSessionText.enabled = false;
             FindObjectOfType<PressKeyToBegin>().StartPause();
         }
 
-        alert.Play();
+        Alert.Play();
 
-        timerSession.Reset();
-        timerSession.Start();
+        TimerSession.Reset();
+        TimerSession.Start();
 
         StartTrial();
 
@@ -396,52 +415,51 @@ public partial class Experiment : MonoBehaviour
 
     public void EndTrial()
     {
-        timerTrial.Stop();
+        TimerTrial.Stop();
         LaneManager.Instance.ResetLanes();
         LevelManager.Instance.StopLevel();
 
         SaveTrial();
-        trialNumber++;
+        TrialNumber++;
         SaveState();
 
-        interTrialTimer.Reset();
-        interTrialTimer.Start();
+        InterTrialTimer.Reset();
+        InterTrialTimer.Start();
 
         // Message is set in update loop, due to interference with DisplayMessage
-        countdown.enabled = true;
+        Countdown.enabled = true;
 
-        state = SHGameState.InterTrialBreak;
+        State = ShGameState.InterTrialBreak;
     }
 
     public void StartTrial()
     {
-        if (state != SHGameState.Playing)
+        if (State != ShGameState.Playing)
         {
-            state = SHGameState.Playing;
+            State = ShGameState.Playing;
         }
 
-        movements = new List<Movement>();
-        timeLastMovementLogged = Time.time;
+        _movements = new List<Movement>();
+        _timeLastMovementLogged = Time.time;
 
-        message.enabled = false;
-        countdown.enabled = false;
+        Message.enabled = false;
+        Countdown.enabled = false;
 
-        timerTrial.Reset();
-        timerTrial.Start();
-        DifficultyManager.Instance.ResetDifficulty();
+        TimerTrial.Reset();
+        TimerTrial.Start();
         LevelManager.Instance.BeginLevel();
 
-        trialFrames = 0;
-        newHighScore = false;
+        _trialFrames = 0;
+        _newHighScore = false;
     }
 
     void ReloadTimerSettings()
     {
-        if (sessionNumber < sessions.Count)
+        if (SessionNumber < Sessions.Count)
         {
-            timerSession.initialValue = SessionTime();
-            interTrialTimer.initialValue = InterTrialTime();
-            interSessionTimer.initialValue = InterSessionTime();
+            TimerSession.InitialValue = SessionTime();
+            InterTrialTimer.InitialValue = InterTrialTime();
+            InterSessionTimer.InitialValue = InterSessionTime();
         }
     }
 
@@ -449,24 +467,24 @@ public partial class Experiment : MonoBehaviour
     {
         ReloadTimerSettings();
 
-        timerSession.TimerFinished += EndSession;
-        timerSession.minValue = 0f;
-        timerSession.countUp = false;
-        timerSession.Reset();
+        TimerSession.TimerFinished += EndSession;
+        TimerSession.MinValue = 0f;
+        TimerSession.CountUp = false;
+        TimerSession.Reset();
 
-        interTrialTimer.Stop();
-        interTrialTimer.TimerFinished += StartTrial;
-        interTrialTimer.minValue = 0f;
-        interTrialTimer.countUp = false;
-        interTrialTimer.Reset();
+        InterTrialTimer.Stop();
+        InterTrialTimer.TimerFinished += StartTrial;
+        InterTrialTimer.MinValue = 0f;
+        InterTrialTimer.CountUp = false;
+        InterTrialTimer.Reset();
 
-        interSessionTimer.Stop();
-        interSessionTimer.TimerFinished += StartSession;
-        interSessionTimer.TimerTick += SaveState;
-        interSessionTimer.minValue = 0f;
-        interSessionTimer.tickLength = 5;
-        interSessionTimer.countUp = false;
-        interSessionTimer.Reset();
+        InterSessionTimer.Stop();
+        InterSessionTimer.TimerFinished += StartSession;
+        InterSessionTimer.TimerTick += SaveState;
+        InterSessionTimer.MinValue = 0f;
+        InterSessionTimer.TickLength = 5;
+        InterSessionTimer.CountUp = false;
+        InterSessionTimer.Reset();
 
         StartCoroutine(LoadState(AfterStateLoaded));
     }
@@ -474,7 +492,7 @@ public partial class Experiment : MonoBehaviour
     void AfterStateLoaded()
     {
         //Debug.Log("After State Loaded. interSessionTimeRemaining = " + interSessionTimeRemaining + "; sessionTimeRemaining = " + sessionTimeRemaining);
-        if (interSessionTimeRemaining != 0 && sessionTimeRemaining == 0)
+        if (InterSessionTimeRemaining != 0 && SessionTimeRemaining == 0)
         {
             FindObjectOfType<PressKeyToBegin>().StopPause();
             EndSession(true);
@@ -482,7 +500,7 @@ public partial class Experiment : MonoBehaviour
         else
         {
             //Debug.Log("AfterStateLoaded");
-            state = SHGameState.Playing;
+            State = ShGameState.Playing;
         }
     }
 

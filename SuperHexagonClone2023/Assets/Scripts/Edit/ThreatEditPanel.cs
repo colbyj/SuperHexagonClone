@@ -1,15 +1,16 @@
-using SH.LevelScripting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
+using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.LevelVisuals;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class ThreatEditPanel : MonoBehaviour
 {
-    private Pattern pattern
+    private Pattern Pattern
     {
         get { return PatternPreview.Instance.CurrentPattern; }
     }
@@ -28,21 +29,21 @@ public class ThreatEditPanel : MonoBehaviour
     }
 
     private int _currentWallIndex;
-    [SerializeField] private Slider sSide;
-    [SerializeField] private TMP_InputField iThickness;
-    [SerializeField] private TMP_InputField iDistance;
-    [SerializeField] private Button bDelete;
+    [SerializeField] private Slider _sSide;
+    [SerializeField] private TMP_InputField _iThickness;
+    [SerializeField] private TMP_InputField _iDistance;
+    [SerializeField] private Button _bDelete;
 
     // Start is called before the first frame update
     void Start()
     {
-        sSide.onValueChanged.AddListener(OnSideChanged);
-        iThickness.onValueChanged.AddListener(OnThicknessChanged);
-        iDistance.onValueChanged.AddListener(OnDistanceChanged);
+        _sSide.onValueChanged.AddListener(OnSideChanged);
+        _iThickness.onValueChanged.AddListener(OnThicknessChanged);
+        _iDistance.onValueChanged.AddListener(OnDistanceChanged);
 
         SHLine.SelectedThreatChanged += () =>
         {
-            if (SHLine.selectedLine == null)
+            if (SHLine.SelectedLine == null)
             {
                 gameObject.SetActive(false);
             }
@@ -61,9 +62,9 @@ public class ThreatEditPanel : MonoBehaviour
 
     public void OnSelectedIndexChanged()
     {
-        sSide.value = CurrentWall.Side;
-        iThickness.text = CurrentWall.Height.ToString();
-        iDistance.text = CurrentWall.Distance.ToString();
+        _sSide.value = CurrentWall.Side;
+        _iThickness.text = CurrentWall.Height.ToString();
+        _iDistance.text = CurrentWall.Distance.ToString();
     }
 
     public void OnSideChanged(float side)

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Assets.Scripts.LevelBehavior;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -16,30 +17,33 @@ public partial class Experiment
 #pragma warning disable 0649
     private class ExperimentState
     {
-        public int participantID;
-        public float interSessionTimeRemaining; // If this is anything other than 0, the participant is assumed to be in a break period
-        public float sessionTimeRemaining;
-        public int sessionNumber;
-        public int trialNumber;
-        public float maxDuration;
+        public int ParticipantId;
+        public float InterSessionTimeRemaining; // If this is anything other than 0, the participant is assumed to be in a break period
+        public float SessionTimeRemaining;
+        public int SessionNumber;
+        public int TrialNumber;
+        public float MaxDuration;
     }
 
     private class SessionList
     { // Stupid workaround for Unity...
-        public List<SessionParameters> sessions;
+        public List<SessionParameters> Sessions;
     }
 #pragma warning restore 0649
 
 
-    public string movementsCSV()
+    public string MovementsCsv()
     {
         string csv = "";
 
-        if (movements.Count == 0) return csv;
-
-        for (int i = 0; i < movements.Count; i++)
+        if (_movements.Count == 0)
         {
-            csv += movements[i].CSV();
+            return csv;
+        }
+
+        for (int i = 0; i < _movements.Count; i++)
+        {
+            csv += _movements[i].Csv();
         }
 
         return csv;
@@ -47,7 +51,7 @@ public partial class Experiment
 
     public void SaveTrial(bool interrupted = false)
     {
-        float framerate = trialFrames / timerTrial.value;
+        float framerate = _trialFrames / TimerTrial.Value;
 
         if (float.IsNaN(framerate))
         {
@@ -55,19 +59,23 @@ public partial class Experiment
         }
 
         WWWForm frm = new WWWForm();
-        if (participantID != 0) frm.AddField("participantID", participantID);
-        frm.AddField("duration", timerTrial.value.ToString("#.00"));
+        if (ParticipantId != 0)
+        {
+            frm.AddField("participantID", ParticipantId);
+        }
+
+        frm.AddField("duration", TimerTrial.Value.ToString("#.00"));
         frm.AddField("avgFps", framerate.ToString("#.00"));
-        frm.AddField("trialNumber", trialNumber);
-        frm.AddField("sessionNumber", sessionNumber);
+        frm.AddField("trialNumber", TrialNumber);
+        frm.AddField("sessionNumber", SessionNumber);
         frm.AddField("difficultyRotation", DifficultyManager.Instance.RotationSpeed.ToString("#.00000"));
         frm.AddField("difficultySpawning", DifficultyManager.Instance.ThreatSpeed.ToString("#.00000"));
         frm.AddField("interrupted", interrupted ? "true": "false");
-        frm.AddField("movements", StringCompressor.CompressString(movementsCSV()));
+        frm.AddField("movements", StringCompressor.CompressString(MovementsCsv()));
 
         try
         {
-            var request = UnityWebRequest.Post(serverUrl + "/sh_post_trial", frm);
+            var request = UnityWebRequest.Post(ServerUrl + "/sh_post_trial", frm);
             request.SendWebRequest();
         }
         catch (Exception ex)
@@ -79,16 +87,20 @@ public partial class Experiment
     public void SaveState()
     {
         WWWForm frm = new WWWForm();
-        if (participantID != 0) frm.AddField("participantID", participantID);
-        frm.AddField("interSessionTimeRemaining", interSessionTimeRemaining.ToString());
-        frm.AddField("sessionTimeRemaining", sessionTimeRemaining.ToString());
-        frm.AddField("sessionNumber", sessionNumber);
-        frm.AddField("trialNumber", trialNumber);
-        frm.AddField("maxDuration", maxDuration.ToString("#.00"));
+        if (ParticipantId != 0)
+        {
+            frm.AddField("participantID", ParticipantId);
+        }
+
+        frm.AddField("interSessionTimeRemaining", InterSessionTimeRemaining.ToString());
+        frm.AddField("sessionTimeRemaining", SessionTimeRemaining.ToString());
+        frm.AddField("sessionNumber", SessionNumber);
+        frm.AddField("trialNumber", TrialNumber);
+        frm.AddField("maxDuration", MaxDuration.ToString("#.00"));
 
         try
         {
-            var request = UnityWebRequest.Post(serverUrl + "/sh_post_state", frm);
+            var request = UnityWebRequest.Post(ServerUrl + "/sh_post_state", frm);
             request.SendWebRequest();
         }
         catch (Exception ex)
@@ -102,13 +114,13 @@ public partial class Experiment
     {
         string url = "";
 
-        if (participantID != 0)
+        if (ParticipantId != 0)
         {
-            url = serverUrl + "/sh_get_state/" + participantID;
+            url = ServerUrl + "/sh_get_state/" + ParticipantId;
         }
         else
         {
-            url = serverUrl + "/sh_get_state";
+            url = ServerUrl + "/sh_get_state";
         }
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
@@ -132,11 +144,11 @@ public partial class Experiment
                 else
                 {
                     ExperimentState state = JsonUtility.FromJson<ExperimentState>(response);
-                    interSessionTimeRemaining = state.interSessionTimeRemaining;
-                    sessionTimeRemaining = state.sessionTimeRemaining;
-                    sessionNumber = state.sessionNumber;
-                    trialNumber = state.trialNumber;
-                    maxDuration = state.maxDuration;
+                    InterSessionTimeRemaining = state.InterSessionTimeRemaining;
+                    SessionTimeRemaining = state.SessionTimeRemaining;
+                    SessionNumber = state.SessionNumber;
+                    TrialNumber = state.TrialNumber;
+                    MaxDuration = state.MaxDuration;
                 }
             }
 
@@ -148,13 +160,13 @@ public partial class Experiment
     {
         string url = "";
 
-        if (participantID != 0)
+        if (ParticipantId != 0)
         {
-            url = serverUrl + "/sh_get_settings/" + participantID;
+            url = ServerUrl + "/sh_get_settings/" + ParticipantId;
         }
         else
         {
-            url = serverUrl + "/sh_get_settings";
+            url = ServerUrl + "/sh_get_settings";
         }
 
         using (UnityWebRequest request = UnityWebRequest.Get(url))
@@ -177,7 +189,7 @@ public partial class Experiment
                 else
                 {
                     //Debug.Log(response);
-                    sessions = JsonUtility.FromJson<SessionList>(response).sessions;
+                    Sessions = JsonUtility.FromJson<SessionList>(response).Sessions;
                 }
             }
 

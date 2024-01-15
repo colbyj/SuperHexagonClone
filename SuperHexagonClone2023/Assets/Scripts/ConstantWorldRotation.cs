@@ -6,50 +6,50 @@ using UnityEngine;
 public class ConstantWorldRotation : MonoBehaviour
 {
     public static ConstantWorldRotation Instance { get; private set; }
-    public RotationStartMode startMode;
+    public RotationStartMode StartMode;
 
     [Range(0f, 30f)]
     [Tooltip("How many degrees the script rotates per frame")]
-    public float defaultRotationRate = 2f;
-    public float currentRotationRate;
+    public float DefaultRotationRate = 0f;
+    public float CurrentRotationRate;
     [Tooltip("Checked = clockwise, Unchecked = counter-clockwise")]
-    private bool right;
+    private bool _right;
 
 
 
 
-    public float flipMaxCd = 5f;
-    public float curFlipCd;
+    public float FlipMaxCd = 5f;
+    public float CurFlipCd;
 
-    public RotationMode mode;
+    public RotationMode Mode;
 
     [Header("Systematic Mode")]
-    public float systematicTime;
+    public float SystematicTime;
 
     [Header("Random Modes")]
     [Tooltip("Changes will not take effect until you restart the game!")]
-    public float randBaseProb;
+    public float RandBaseProb;
 
     [Header("Random Ramp Mode Only")]
     [Tooltip("The probability of the rotation change will multiply this value after each attempt when using RAND_RAMP")]
-    public float rampAmt = 1.03f;
-    public float rampedProb;
+    public float RampAmt = 1.03f;
+    public float RampedProb;
 
 
 
     public enum RotationMode
     {
-        UNCHANGING,
-        RANDOM,
-        RAND_RAMP,
-        SYSTEMATIC
+        Unchanging,
+        Random,
+        RandRamp,
+        Systematic
     }
 
     public enum RotationStartMode
     {
-        RIGHT,
-        LEFT,
-        RANDOMIZE
+        Right,
+        Left,
+        Randomize
     }
 
 
@@ -65,26 +65,26 @@ public class ConstantWorldRotation : MonoBehaviour
 
     void Start()
     {
-        switch (startMode)
+        switch (StartMode)
         {
-            case RotationStartMode.LEFT:
-                right = false;
+            case RotationStartMode.Left:
+                _right = false;
                 break;
-            case RotationStartMode.RIGHT:
-                right = true;
+            case RotationStartMode.Right:
+                _right = true;
                 break;
-            case RotationStartMode.RANDOMIZE:
+            case RotationStartMode.Randomize:
                 if (Random.Range(0f, 1f) > 5f)
                 {
-                    right = !right;
+                    _right = !_right;
                 }
                 break;
         }
 
-        currentRotationRate = defaultRotationRate;
-        rampedProb = randBaseProb;
-        curFlipCd = flipMaxCd;
-        if (mode == RotationMode.RANDOM || mode == RotationMode.RAND_RAMP)
+        CurrentRotationRate = DefaultRotationRate;
+        RampedProb = RandBaseProb;
+        CurFlipCd = FlipMaxCd;
+        if (Mode == RotationMode.Random || Mode == RotationMode.RandRamp)
         {
             InvokeRepeating("FlipRoll", 0f, .5f);
         }
@@ -93,35 +93,35 @@ public class ConstantWorldRotation : MonoBehaviour
     public void FlipRoll()
     {
         //Is the rotation cooldown still on? Then abort computation!
-        if (curFlipCd > 0f)
+        if (CurFlipCd > 0f)
         {
             return;
         }
         float roll = Random.Range(0f, 1f);
-        if (mode == RotationMode.RANDOM)
+        if (Mode == RotationMode.Random)
         {
-            if (randBaseProb > roll)
+            if (RandBaseProb > roll)
             {
-                right = !right;
-                rampedProb = randBaseProb;
-                curFlipCd = flipMaxCd;
+                _right = !_right;
+                RampedProb = RandBaseProb;
+                CurFlipCd = FlipMaxCd;
             }
             else
             {
-                rampedProb *= rampAmt;
+                RampedProb *= RampAmt;
             }
         }
-        else if (mode == RotationMode.RAND_RAMP)
+        else if (Mode == RotationMode.RandRamp)
         {
-            if (rampedProb > roll)
+            if (RampedProb > roll)
             {
-                right = !right;
-                rampedProb = randBaseProb;
-                curFlipCd = flipMaxCd;
+                _right = !_right;
+                RampedProb = RandBaseProb;
+                CurFlipCd = FlipMaxCd;
             }
             else
             {
-                rampedProb *= rampAmt;
+                RampedProb *= RampAmt;
             }
         }
 
@@ -129,35 +129,43 @@ public class ConstantWorldRotation : MonoBehaviour
 
     public void Clockwise()
     {
-        if (right)
+        if (_right)
+        {
             return;
+        }
+
         LevelEnducedFlip();
     }
 
     public void CounterClockwise()
     {
-        if (!right)
+        if (!_right)
+        {
             return;
+        }
+
         LevelEnducedFlip();
     }
 
     public void LevelEnducedFlip()
     {
-        right = !right;
-        rampedProb = randBaseProb;
-        curFlipCd = flipMaxCd;
+        _right = !_right;
+        RampedProb = RandBaseProb;
+        CurFlipCd = FlipMaxCd;
     }
 
     void Update()
     {
-        curFlipCd -= Time.deltaTime;
+        CurFlipCd -= Time.deltaTime;
 
         if (Time.deltaTime == 0)
+        {
             return;
+        }
 
         // This used to be in FixedUpdate, so 0.02f is the old time between FixedUpdate calls. I thought it might be smoother in Update.
-        Vector3 rotationVect = new Vector3(0, 0, currentRotationRate * (Time.deltaTime / 0.02f));
-        if (right)
+        Vector3 rotationVect = new Vector3(0, 0, CurrentRotationRate * (Time.deltaTime / 0.02f));
+        if (_right)
         {
             rotationVect *= -1;
         }
@@ -168,8 +176,8 @@ public class ConstantWorldRotation : MonoBehaviour
     {
         CancelInvoke();
         transform.rotation = Quaternion.Euler(new Vector3(0, 0, 0));
-        curFlipCd = flipMaxCd;
-        right = true;
-        currentRotationRate = defaultRotationRate;
+        CurFlipCd = FlipMaxCd;
+        _right = true;
+        CurrentRotationRate = DefaultRotationRate;
     }
 }

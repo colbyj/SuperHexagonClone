@@ -5,23 +5,26 @@ using UnityEngine;
 public class PressKeyToBegin : MonoBehaviour
 {
 
-    private bool begun = false;
+    private bool _begun = false;
 
     // Use this for initialization
     void Start()
     {
-        if (!begun) StartPause();
+        if (!_begun)
+        {
+            StartPause();
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (!begun)
+        if (!_begun)
         {
             Time.timeScale = 0;
             if (Input.anyKey)
             {
-                begun = true;
+                _begun = true;
                 Time.timeScale = 1;
             }
         }
@@ -30,13 +33,13 @@ public class PressKeyToBegin : MonoBehaviour
     public void StartPause()
     {
         FindObjectOfType<DisplayMessage>().AddMessageToTop("Press any key to begin", 0.1f);
-        begun = false;
+        _begun = false;
     }
 
     public void StopPause()
     {
         FindObjectOfType<DisplayMessage>().ClearMessage();
-        begun = true;
+        _begun = true;
         Time.timeScale = 1;
     }
 }
