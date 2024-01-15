@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.SHPlayer;
 using CustomExtensions;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using static Assets.Scripts.LevelBehavior.Pattern;
 
 namespace Assets.Scripts.LevelVisuals
 {
@@ -39,6 +43,20 @@ namespace Assets.Scripts.LevelVisuals
         // Materials
         public Material StandardMaterial;
         public Material EditMaterial;
+
+        private float _spawnRadiusOffset;
+
+        public PatternInstance AssociatedPatternInstance
+        {
+            get;
+            private set;
+        }
+
+        public Pattern.Wall AssociatedWall
+        {
+            get;
+            private set;
+        }
 
         public bool IsSelected
         {
@@ -83,13 +101,10 @@ namespace Assets.Scripts.LevelVisuals
         public static SHLine SelectedLine
         {
             get => s_selectedLine;
-            set
+            private set
             {
                 s_selectedLine = value;
-                if (SelectedThreatChanged != null)
-                {
-                    SelectedThreatChanged.Invoke();
-                }
+                SelectedThreatChanged?.Invoke();
             }
         }
 
@@ -209,7 +224,10 @@ namespace Assets.Scripts.LevelVisuals
 
         public void OnMouseDown()
         {
-            if (!ThreatManager.IsEditScene)
+            if (!ThreatManager.IsEditScene || !PlayerBehavior.IsDead)
+                return;
+
+            if (EventSystem.current.IsPointerOverGameObject()) 
                 return;
             
             IsSelected = !IsSelected;
@@ -238,6 +256,40 @@ namespace Assets.Scripts.LevelVisuals
             _edgeCol.SetPoints(points2D.Skip(2).Take(2).ToList());
 
             _needsUpdate = false;
+        }
+
+        public void SetAssociations(PatternInstance patternInstance, Pattern.Wall wall, float? spawnRadiusOffset = null)
+        {
+            AssociatedPatternInstance = patternInstance;
+            AssociatedWall = wall;
+            
+            RebuildFromAssociations(spawnRadiusOffset);
+        }
+
+        public void RebuildFromAssociations(float? newSpawnRadiusOffset = null)
+        {
+            if (newSpawnRadiusOffset.HasValue)
+            {
+                _spawnRadiusOffset = newSpawnRadiusOffset.Value;
+            }
+
+            int sideIndex = (AssociatedWall.Side + AssociatedPatternInstance.RotationOffset) % ThreatManager.LanesRequired;
+            if (AssociatedPatternInstance.Mirrored)
+            {
+                sideIndex = ThreatManager.LanesRequired - 1 - sideIndex;
+            }
+
+            float wallDistance = _spawnRadiusOffset + AssociatedWall.Distance + AssociatedPatternInstance.DistanceOffset;
+            float rotation = sideIndex * (360f / ThreatManager.LanesRequired);
+
+            Radius = wallDistance;
+            Thickness = AssociatedWall.Height;
+
+            // Reset the position and rotation of the line/threat.
+            transform.position = new Vector3(0f, 0f, -0.2f);
+            transform.rotation = Quaternion.Euler(0, 0, rotation);
+
+            UpdatePolygon();
         }
 
         # region Fading

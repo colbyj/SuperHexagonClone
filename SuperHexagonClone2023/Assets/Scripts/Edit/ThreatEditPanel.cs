@@ -1,87 +1,102 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Drawing;
+using System.Linq;
 using Assets.Scripts.LevelBehavior;
 using Assets.Scripts.LevelVisuals;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class ThreatEditPanel : MonoBehaviour
+namespace Assets.Scripts.Edit
 {
-    private Pattern Pattern
+    public class ThreatEditPanel : MonoBehaviour
     {
-        get { return PatternPreview.Instance.CurrentPattern; }
-    }
-    public int CurrentWallIndex {
-        get { return _currentWallIndex; }
-        set 
+        public static ThreatEditPanel Instance;
+    
+        public Pattern.Wall SelectedWall => SHLine.SelectedLine.AssociatedWall;
+
+        private int _currentWallIndex;
+        [SerializeField] private Slider _sSide;
+        [SerializeField] private TMP_InputField _iThickness;
+        [SerializeField] private TMP_InputField _iDistance;
+        [SerializeField] private Button _bDelete;
+
+        // Start is called before the first frame update
+        private void Awake()
         {
-            _currentWallIndex = value;
-            OnSelectedIndexChanged();
+            Instance = this;
+
+            _sSide.onValueChanged.AddListener(OnSideChanged);
+            _iThickness.onValueChanged.AddListener(OnThicknessChanged);
+            _iDistance.onValueChanged.AddListener(OnDistanceChanged);
+
+            SHLine.SelectedThreatChanged += () =>
+            {
+                if (SHLine.SelectedLine == null || SHLine.SelectedLine.AssociatedPatternInstance == null)
+                {
+                    gameObject.SetActive(false);
+                }
+                else
+                {
+                    gameObject.SetActive(true);
+                    _sSide.value = SelectedWall.Side;
+                    _iThickness.text = SelectedWall.Height.ToString();
+                    _iDistance.text = SelectedWall.Distance.ToString();
+                }
+            };
+
+            _bDelete.onClick.AddListener(OnDeleteClicked);
+
+            gameObject.SetActive(false);
         }
-    }
-    public Pattern.Wall CurrentWall
-    {
-        get { return PatternPreview.Instance.CurrentPattern.Walls[CurrentWallIndex]; }
-        set { PatternPreview.Instance.CurrentPattern.Walls[CurrentWallIndex] = value; }
-    }
 
-    private int _currentWallIndex;
-    [SerializeField] private Slider _sSide;
-    [SerializeField] private TMP_InputField _iThickness;
-    [SerializeField] private TMP_InputField _iDistance;
-    [SerializeField] private Button _bDelete;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        _sSide.onValueChanged.AddListener(OnSideChanged);
-        _iThickness.onValueChanged.AddListener(OnThicknessChanged);
-        _iDistance.onValueChanged.AddListener(OnDistanceChanged);
-
-        SHLine.SelectedThreatChanged += () =>
+        private void OnSideChanged(float side)
         {
-            if (SHLine.SelectedLine == null)
+            SelectedWall.Side = (int)side;
+            SHLine.SelectedLine.RebuildFromAssociations();
+        }
+
+        private void OnThicknessChanged(string thickness)
+        {
+            if (!thickness.All(char.IsDigit))
+                return;
+
+            SelectedWall.Height = Convert.ToInt32(thickness);
+            SHLine.SelectedLine.RebuildFromAssociations();
+        }
+
+        private void OnDistanceChanged(string distanceStr)
+        {
+            if (!distanceStr.All(char.IsDigit))
+                return;
+
+            if (int.TryParse(distanceStr, out int distance))
             {
-                gameObject.SetActive(false);
+                SelectedWall.Distance = Convert.ToInt32(distance);
+                SHLine.SelectedLine.RebuildFromAssociations();
             }
-            else
+        }
+
+        private void OnDeleteClicked()
+        {
+            SHLine.SelectedLine.AssociatedPatternInstance.Pattern.Walls.Remove(SHLine.SelectedLine.AssociatedWall);
+            ThreatManager.Instance.RemoveThreat(SHLine.SelectedLine);
+        }
+
+        public Pattern.Wall NewWallFromSettings()
+        {
+            int side = (int)_sSide.value;
+
+            if (!int.TryParse(_iDistance.text, out int distance))
             {
-                gameObject.SetActive(true);
+                distance = 0;
             }
-        };
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+            if (!int.TryParse(_iThickness.text, out int height))
+            {
+                height = 3;
+            }
 
-    public void OnSelectedIndexChanged()
-    {
-        _sSide.value = CurrentWall.Side;
-        _iThickness.text = CurrentWall.Height.ToString();
-        _iDistance.text = CurrentWall.Distance.ToString();
-    }
-
-    public void OnSideChanged(float side)
-    {
-        Pattern.Wall newWall = new Pattern.Wall((int)side, CurrentWall.Distance, CurrentWall.Height);
-        CurrentWall = newWall;
-    }
-
-    public void OnThicknessChanged(string thickness)
-    {
-        Pattern.Wall newWall = new Pattern.Wall(CurrentWall.Side, CurrentWall.Distance, Convert.ToInt32(thickness));
-        CurrentWall = newWall;
-    }
-
-    public void OnDistanceChanged(string distance)
-    {
-        Pattern.Wall newWall = new Pattern.Wall(CurrentWall.Side, Convert.ToInt32(distance), CurrentWall.Height);
-        CurrentWall = newWall;
+            return new Pattern.Wall(side, distance, height);
+        }
     }
 }

@@ -149,15 +149,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 13a49242fa5fb44438e5dfd510f36307, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  radius: 75
-  thickness: 3
-  laneCount: 6
-  velocity: 20
-  points:
-  - {x: -23.7713, y: 41.1731, z: 4.543582e+30}
-  - {x: 23.7713, y: 41.1731, z: 4.5712e-41}
-  - {x: 22.03925, y: 38.1731, z: 0.000000003118}
-  - {x: -22.03925, y: 38.1731, z: 3.0935e-41}
-  isSelected: 0
-  standardMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
-  editMaterial: {fileID: 2100000, guid: fa71839878fe1bf4f95a256d7af0b70e, type: 2}
+  _isSelected: 0
+  _radius: 100
+  _thickness: 0
+  _needsUpdate: 1
+  _points: []
+  StandardMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
+  EditMaterial: {fileID: 2100000, guid: fa71839878fe1bf4f95a256d7af0b70e, type: 2}

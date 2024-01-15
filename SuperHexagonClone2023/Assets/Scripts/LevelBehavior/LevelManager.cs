@@ -1,6 +1,9 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
 
@@ -9,9 +12,11 @@ namespace Assets.Scripts.LevelBehavior
     public class LevelManager : MonoBehaviour
     {
         public static LevelManager Instance { get; private set; }
+        public static Action OnFirstBegin;
+        private static bool FirstBegun;
 
         public ParsedLevel Level;
-        public TextAsset LevelDefinition;
+        public string LevelName;
 
         public bool ShowInstructions = true;
         private Experiment _experiment;
@@ -24,9 +29,11 @@ namespace Assets.Scripts.LevelBehavior
             Instance = this;
             _experiment = FindObjectOfType<Experiment>();
 
+            string levelXmlStr = File.ReadAllText($"{Application.streamingAssetsPath}/Levels/{LevelName}.xml");
+
             Level = new ParsedLevel();
-            Level.ParseLevelXml(LevelDefinition.text);
-            StartCoroutine(nameof(StartLevel));
+            Level.ParseLevelXml(levelXmlStr);
+            StartCoroutine(nameof(FirstBeginLevel));
 
             PlayerBehavior.OnPlayerDied += OnPlayerDied;
             PlayerBehavior.OnPlayerRespawn += OnPlayerRespawn;
@@ -42,14 +49,14 @@ namespace Assets.Scripts.LevelBehavior
             ThreatManager.Instance.Clear();
         }
 
-        private IEnumerator StartLevel()
+        private IEnumerator FirstBeginLevel()
         {
             if (ShowInstructions)
             {
                 DisplayMessage displayMessage = FindObjectOfType<DisplayMessage>();
                 displayMessage.AddMessage("Move clockwise with the right arrow", 2);
                 displayMessage.AddMessage("Move counter-clockwise with the left arrow", 2);
-                displayMessage.AddMessage("Avoid the obtacles", 2);
+                displayMessage.AddMessage("Avoid the obstacles", 2);
                 displayMessage.AddMessage("GO!", 1);
 
                 yield return new WaitForSeconds(8f);
@@ -66,8 +73,8 @@ namespace Assets.Scripts.LevelBehavior
         {
             if (_experiment != null && _experiment.State != Experiment.ShGameState.Playing)
             {
-                // We shouldn't be here... Try again in a second
-                Invoke(nameof(BeginLevel), 1.0f);
+                // We shouldn't be here... Try again in a moment
+                Invoke(nameof(BeginLevel), 0.1f);
                 return;
             }
 
@@ -75,6 +82,13 @@ namespace Assets.Scripts.LevelBehavior
             //timeLastObstacle = Time.time;
             Level.ResetLevel();
             _levelIsActive = true;
+
+            if (!FirstBegun)
+            {
+                OnFirstBegin?.Invoke();
+                FirstBegun = true;
+            }
+
             Debug.Log("BeginLevel");
         }
 
@@ -117,6 +131,7 @@ namespace Assets.Scripts.LevelBehavior
                             DifficultyManager.Instance.ThreatDifficultyAccelerator.SetCeiling(floatCommand.Argument);
                             break;
                         case LevelCommandType.PlayerSpeed:
+                            Debug.Log($"Set PlayerRotationRate to {floatCommand.Argument}");
                             DifficultyManager.Instance.PlayerRotationRate = floatCommand.Argument;
                             break;
                         case LevelCommandType.PatternRadiusOffset:
@@ -146,24 +161,31 @@ namespace Assets.Scripts.LevelBehavior
                 {
                     if (nextCommand is LevelSpawnOneCommand spawnCommand)
                     {
-                        ThreatManager.Instance.SpawnLevelPattern(spawnCommand.GetRandomToSpawn);
+                        var patternInstance = spawnCommand.GetRandomToSpawn;
+
+                        if (Level.LevelCommands.Last() == nextCommand)
+                        {
+                            patternInstance.LastBeforeRestart = true;  // Mark this as the last pattern!
+                        }
+
+                        ThreatManager.Instance.SpawnLevelPattern(patternInstance);
                     }
 
-                    //LaneManager.Instance.SpawnThreats(spawnCommand.GetRandomToSpawn, LaneManager.Instance.GetThreatSpawnRadius());
                     Level.CommandHandled();
                 }
                 else if (nextCommand.CommandType == LevelCommandType.SpawnGroup)
                 {
                     if (nextCommand is LevelSpawnGroupCommand spawnCommand)
                     {
-                        List<LevelPattern> threats = spawnCommand.GetRandomGroupToSpawn;
+                        List<PatternInstance> patterns = spawnCommand.GetRandomGroupToSpawn;
 
-                        foreach (LevelPattern threat in threats)
+                        for (int i = 0; i < patterns.Count; i++) 
                         {
-                            ThreatManager.Instance.SpawnLevelPattern(threat);
-
-                            // Need to update spawn radius each time
-                            //LaneManager.Instance.SpawnThreats(threat, LaneManager.Instance.GetThreatSpawnRadius());
+                            if (i == patterns.Count - 1)
+                            {
+                                patterns[i].LastBeforeRestart = true;  // Mark this as the last pattern!
+                            }
+                            ThreatManager.Instance.SpawnLevelPattern(patterns[i]);
                         }
                     }
 

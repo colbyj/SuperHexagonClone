@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Assets.Scripts.Edit;
 using Assets.Scripts.LevelVisuals;
+using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
+using JetBrains.Annotations;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -10,16 +13,18 @@ namespace Assets.Scripts.LevelBehavior
 {
     public class ThreatManager : MonoBehaviour
     {
+        private const bool DebuggingEnabled = true;
+        public const int LanesRequired = 6; // TODO
         public const float SpawnPatternsUntilRadius = 100f;
 
         public static ThreatManager Instance;
 
         // These will get used for logging
-        public Action<LevelPattern> PatternIsPastPlayer;
-        public Action<LevelPattern> PatternIsAtPlayer;
-        public Action<LevelPattern> PatternIsOffScreen;
+        public Action<PatternInstance> PatternIsPastPlayer;
+        public Action<PatternInstance> PatternIsAtPlayer;
+        public Action<PatternInstance> PatternIsOffScreen;
 
-        public List<LevelPattern> PatternsOnScreen = new();
+        public List<PatternInstance> PatternsOnScreen = new();
         private ParsedLevel Level => LevelManager.Instance.Level;
 
 
@@ -125,31 +130,6 @@ namespace Assets.Scripts.LevelBehavior
             releasedLine.gameObject.SetActive(false);
             ActiveThreats.Remove(releasedLine);
         }
-
-        private SHLine SpawnThreatFromPool(float thickness, float radius, float rotation = 0f, bool isFirstPattern = false)
-        {
-            SHLine threat = _threatPool.Get();
-
-            if (threat != null)
-            {
-                threat.Radius = radius;
-                threat.Thickness = thickness;
-
-                // Reset the position and rotation of the line/threat.
-                threat.transform.position = new Vector3(0f, 0f, -0.2f);
-                threat.transform.rotation = Quaternion.Euler(0, 0, rotation);
-
-                threat.UpdatePolygon();
-                
-                if (isFirstPattern && !IsEditScene)
-                {
-                    threat.StartFadeIn();
-                }
-            }
-
-            return threat;
-        }
-
         #endregion
 
         // Update is called once per frame
@@ -165,11 +145,11 @@ namespace Assets.Scripts.LevelBehavior
                 return;
             }
 
-            LevelPattern patternPastPlayer = null;
-            LevelPattern patternAtPlayer = null;
-            LevelPattern patternOffScreen = null;
+            PatternInstance patternInstancePastPlayer = null;
+            PatternInstance patternInstanceAtPlayer = null;
+            PatternInstance patternInstanceOffScreen = null;
 
-            foreach (LevelPattern patternOnScreen in PatternsOnScreen)
+            foreach (PatternInstance patternOnScreen in PatternsOnScreen)
             {
                 for (int i = 0; i < patternOnScreen.Threats.Count; i++)
                 {
@@ -179,75 +159,101 @@ namespace Assets.Scripts.LevelBehavior
 
                 if (patternOnScreen.FurthestThreat.HasJustPassedRadius(GameParameters.PlayerRadius))
                 {
-                    patternPastPlayer = patternOnScreen;
+                    patternInstancePastPlayer = patternOnScreen;
                 }
 
                 if (patternOnScreen.ClosestThreat.HasJustPassedRadius(GameParameters.PlayerRadius))
                 {
-                    patternAtPlayer = patternOnScreen;
+                    patternInstanceAtPlayer = patternOnScreen;
                 }
 
-                if (patternOffScreen == null && patternOnScreen.FurthestThreat.RadiusOuter() <= 0)
+                if (patternInstanceOffScreen == null && patternOnScreen.FurthestThreat.RadiusOuter() <= 0)
                 {
-                    patternOffScreen = patternOnScreen;
+                    patternInstanceOffScreen = patternOnScreen;
                 }
             }
 
             // These are invoked after iterating through the list to avoid modifying the list.
-            if (patternPastPlayer != null)
+            if (patternInstancePastPlayer != null)
             {
-                PatternIsPastPlayer?.Invoke(patternPastPlayer);
+                PatternIsPastPlayer?.Invoke(patternInstancePastPlayer);
+
+                // Did the player win?
+                if (patternInstancePastPlayer.LastBeforeRestart)
+                {
+                    Experiment.Instance?.Success.Play();
+                    FindObjectOfType<DisplayMessage>().AddMessageToTop("Level completed!", 2f);
+                }
             }
 
-            if (patternAtPlayer != null)
+            if (patternInstanceAtPlayer != null)
             {
-                PatternIsAtPlayer?.Invoke(patternAtPlayer);
+                PatternIsAtPlayer?.Invoke(patternInstanceAtPlayer);
             }
 
             // Remove any patterns that are now fully off the screen.
-            if (patternOffScreen != null)
+            if (patternInstanceOffScreen != null)
             {
-                PatternIsOffScreen?.Invoke(patternOffScreen);
-                FinishWithLevelPattern(patternOffScreen);
+                FinishWithLevelPattern(patternInstanceOffScreen);
+                PatternIsOffScreen?.Invoke(patternInstanceOffScreen);
             }
         }
 
-        private void FinishWithLevelPattern(LevelPattern patternFinished)
+        public SHLine SpawnThreat(PatternInstance patternInstance, Pattern.Wall wall, float? spawnRadius = null, bool isFirstPattern = false)
         {
-            Debug.Log($"FinishWithLevelPattern({patternFinished.Name}), made up of {patternFinished.Threats.Count} threats.");
-            foreach (SHLine line in patternFinished.Threats)
+            SHLine threat = _threatPool.Get();
+
+            if (threat == null)
+            {
+                return null;
+            }
+
+            if (!spawnRadius.HasValue)
+            {
+                spawnRadius = _firstPatternRadius;
+            }
+
+            threat.SetAssociations(patternInstance, wall, spawnRadius.Value);
+
+            if (isFirstPattern && !IsEditScene)
+            {
+                threat.StartFadeIn();
+            }
+
+            return threat;
+        }
+
+        public void RemoveThreat(SHLine line)
+        {
+            _threatPool.Release(line);
+        }
+
+        private void FinishWithLevelPattern(PatternInstance patternInstanceFinished)
+        {
+            if (DebuggingEnabled) Debug.Log($"FinishWithLevelPattern({patternInstanceFinished.Name}), made up of {patternInstanceFinished.Threats.Count} threats.");
+            foreach (SHLine line in patternInstanceFinished.Threats)
             {
                 line.ResetLine();
                 _threatPool.Release(line);
             }
 
-            patternFinished.Threats = new List<SHLine>(); // These patterns get reused, so make sure the threat list is ready to go again.
-            PatternsOnScreen.Remove(patternFinished);
+            patternInstanceFinished.Threats = new List<SHLine>(); // These patterns get reused, so make sure the threat list is ready to go again.
+            PatternsOnScreen.Remove(patternInstanceFinished);
         }
 
-        public void SpawnLevelPattern(LevelPattern patternToSpawn)
+        public void SpawnLevelPattern(PatternInstance patternInstanceToSpawn)
         {
-            const int lanesRequired = 6; // TODO
             float spawnRadius = SpawnRadius;
-            Debug.Log($"Spawning {patternToSpawn.Name} at {spawnRadius}.");
+            if (DebuggingEnabled) Debug.Log($"Spawning {patternInstanceToSpawn.Name} at {spawnRadius}.");
 
-            foreach (Pattern.Wall wall in patternToSpawn.Pattern.Walls)
+            foreach (Pattern.Wall wall in patternInstanceToSpawn.Pattern.Walls)
             {
-                int sideIndex = (wall.Side + patternToSpawn.RotationOffset) % lanesRequired;
-                if (patternToSpawn.Mirrored)
-                {
-                    sideIndex = lanesRequired - 1 - sideIndex;
-                }
-
-                float wallDistance = spawnRadius + wall.Distance + patternToSpawn.DistanceOffset;
-                float rotation = sideIndex * (360f / lanesRequired);
-
-                SHLine line = SpawnThreatFromPool(wall.Height, wallDistance, rotation, spawnRadius == _firstPatternRadius);
-                patternToSpawn.Threats.Add(line);
+                SHLine line = SpawnThreat(patternInstanceToSpawn, wall, spawnRadius, spawnRadius == _firstPatternRadius);
+                patternInstanceToSpawn.Threats.Add(line);
             }
 
-            patternToSpawn.UpdateClosestAndFurthestThreats();
-            PatternsOnScreen.Add(patternToSpawn);
+            patternInstanceToSpawn.UpdateClosestAndFurthestThreats();
+            PatternsOnScreen.Add(patternInstanceToSpawn);
         }
 
         public void Clear()

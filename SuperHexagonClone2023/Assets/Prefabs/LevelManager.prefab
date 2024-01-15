@@ -74,5 +74,5 @@ MonoBehaviour:
     LevelCommands: []
     _currentIndex: 0
     _repeatFromIndex: 0
-  LevelDefinition: {fileID: 4900000, guid: d8550b988109d614a8aae0debf6a5242, type: 3}
+  LevelName: original
   ShowInstructions: 0

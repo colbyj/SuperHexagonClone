@@ -1,49 +1,63 @@
-using System.Collections;
-using System.Collections.Generic;
+using System.IO;
 using Assets.Scripts.LevelBehavior;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
 
-public class PatternPreview : MonoBehaviour
+namespace Assets.Scripts.Edit
 {
-    public static PatternPreview Instance;
-    public string PatternFileName;
-    public Pattern CurrentPattern;
-
-    private void Awake()
+    public class PatternPreview : MonoBehaviour
     {
-        Instance = this;
-        PlayerBehavior.IsDead = false;
-        ThreatManager.Instance.PatternIsOffScreen += PatternIsOffScreen;
-        PlayerBehavior.OnPlayerDied += PlayerDied;
+        public static PatternPreview Instance;
+        public string PatternFileName;
+        public Pattern CurrentPattern;
+        public PatternInstance CurrentPatternInstance;
 
-        if (!string.IsNullOrEmpty(PatternFileName))
+        private void Awake()
         {
+            Instance = this;
+            PlayerBehavior.IsDead = true;
+            ThreatManager.Instance.PatternIsOffScreen += PatternIsOffScreen;
+            PlayerBehavior.OnPlayerDied += PlayerDied;
+
             LoadPatternFromFileName();
         }
-    }
 
-    private void PatternIsOffScreen(LevelPattern obj)
-    {
-        PlayerBehavior.IsDead = true;
-        ThreatManager.Instance.SpawnLevelPattern(new LevelPattern(CurrentPattern));
-    }
+        private void PatternIsOffScreen(PatternInstance obj)
+        {
+            //Debug.Log("PatternPreview.PatternIsOffScreen()");
+            PlayerBehavior.IsDead = true;
+            //ThreatManager.Instance.SpawnLevelPattern(new PatternInstance(CurrentPattern));
+        }
 
-    private void PlayerDied()
-    {
-        ThreatManager.Instance.Clear();
-        ThreatManager.Instance.SpawnLevelPattern(new LevelPattern(CurrentPattern));
-    }
+        private void PlayerDied()
+        {
+            //Debug.Log("PatternPreview.PlayerDied()");
+            ThreatManager.Instance.Clear();
+            ThreatManager.Instance.SpawnLevelPattern(CurrentPatternInstance);
+        }
 
-    public void LoadPatternFromFileName()
-    {
-        CurrentPattern = new Pattern(PatternFileName);
-        //LaneManager.Instance.ResetLanes();
-        //LaneManager.Instance.SpawnThreats(CurrentPattern, 20);
-        ThreatManager.Instance.SpawnLevelPattern(new LevelPattern(CurrentPattern));
-    }
+        public void LoadPatternFromFileName()
+        {
+            if (string.IsNullOrEmpty(PatternFileName))
+            {
+                return;
+            }
 
-    public void Update()
-    {
+            ThreatManager.Instance.Clear();
+
+            CurrentPattern = new Pattern(PatternFileName);
+            //LaneManager.Instance.ResetLanes();
+            //LaneManager.Instance.SpawnThreats(CurrentPattern, 20);
+            CurrentPatternInstance = new PatternInstance(CurrentPattern);
+            ThreatManager.Instance.SpawnLevelPattern(CurrentPatternInstance);
+        }
+
+        public void SavePattern(string fileName)
+        {
+            File.WriteAllText(
+                $"{Application.streamingAssetsPath}/Patterns/{fileName}.xml", 
+                CurrentPattern.XmlDocumentText()
+            );
+        }
     }
 }

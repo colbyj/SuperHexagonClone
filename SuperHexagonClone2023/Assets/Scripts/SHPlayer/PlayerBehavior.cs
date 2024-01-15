@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.Logging;
 using UnityEngine;
 
 namespace Assets.Scripts.SHPlayer
@@ -25,12 +26,12 @@ namespace Assets.Scripts.SHPlayer
                 if (s_isDead)
                 {
                     OnPlayerDied?.Invoke();
-                    Debug.Log("Player died!");
+                    //Debug.Log("Player died!");
                 }
                 else
                 {
                     OnPlayerRespawn?.Invoke();
-                    Debug.Log("Player respawned!");
+                    //Debug.Log("Player respawned!");
                 }
             }
             get => s_isDead;
@@ -98,7 +99,7 @@ namespace Assets.Scripts.SHPlayer
 
             if (allowRotation)
             {
-                rotation *= Time.deltaTime;
+                rotation *= Time.unscaledDeltaTime;
                 _rb.MoveRotation(_rb.rotation + rotation);
             }
         }

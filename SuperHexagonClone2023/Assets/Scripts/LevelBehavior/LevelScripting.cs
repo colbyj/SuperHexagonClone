@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Xml;
 using Assets.Scripts.LevelVisuals;
@@ -62,8 +63,8 @@ namespace Assets.Scripts.LevelBehavior
 
     public class LevelSpawnOneCommand : LevelCommand
     {
-        public List<LevelPattern> ToSpawn;
-        public LevelPattern GetRandomToSpawn
+        public List<PatternInstance> ToSpawn;
+        public PatternInstance GetRandomToSpawn
         {
             get
             {
@@ -75,19 +76,19 @@ namespace Assets.Scripts.LevelBehavior
         public LevelSpawnOneCommand(XmlNodeList patternNodes)
         {
             CommandType = LevelCommandType.SpawnOne;
-            ToSpawn = new List<LevelPattern>();
+            ToSpawn = new List<PatternInstance>();
 
             foreach (XmlNode patternNode in patternNodes)
             {
-                ToSpawn.Add(new LevelPattern(patternNode));
+                ToSpawn.Add(new PatternInstance(patternNode));
             }
         }
     }
 
     public class LevelSpawnGroupCommand : LevelCommand
     {
-        public List<List<LevelPattern>> GroupsToSpawn;
-        public List<LevelPattern> GetRandomGroupToSpawn
+        public List<List<PatternInstance>> GroupsToSpawn;
+        public List<PatternInstance> GetRandomGroupToSpawn
         {
             get
             {
@@ -100,15 +101,15 @@ namespace Assets.Scripts.LevelBehavior
         public LevelSpawnGroupCommand(XmlNodeList patternGroupNodes)
         {
             CommandType = LevelCommandType.SpawnGroup;
-            GroupsToSpawn = new List<List<LevelPattern>>();
+            GroupsToSpawn = new List<List<PatternInstance>>();
 
             foreach (XmlNode patternGroupNode in patternGroupNodes)
             {
-                List<LevelPattern> group = new List<LevelPattern>();
+                List<PatternInstance> group = new List<PatternInstance>();
 
                 foreach (XmlNode patternNode in patternGroupNode.ChildNodes)
                 {
-                    group.Add(new LevelPattern(patternNode));
+                    group.Add(new PatternInstance(patternNode));
                 }
                 GroupsToSpawn.Add(group);
             }
@@ -162,13 +163,7 @@ namespace Assets.Scripts.LevelBehavior
             }
         }
 
-        public LevelCommand NextCommand 
-        { 
-            get
-            {
-                return LevelCommands[_currentIndex];
-            } 
-        }
+        public LevelCommand NextCommand => LevelCommands[_currentIndex];
 
         public void CommandHandled()
         {
@@ -187,20 +182,22 @@ namespace Assets.Scripts.LevelBehavior
     }
 
     [Serializable]
-    public class LevelPattern
+    public class PatternInstance
     {        
-        public  Pattern Pattern;
+        public Pattern Pattern;
         public float DistanceOffset;
         public int RotationOffset;
         public bool Mirrored;
-        public string Name;
+        public bool LastBeforeRestart;
+
+        public string Name => Pattern.FileName;
 
         // These are used for viewing the level pattern
         public List<SHLine> Threats = new List<SHLine>();
         public SHLine ClosestThreat = null;
         public SHLine FurthestThreat = null;
 
-        public LevelPattern(Pattern pattern)
+        public PatternInstance(Pattern pattern)
         {
             this.Pattern = pattern;
             DistanceOffset = 0;
@@ -208,9 +205,8 @@ namespace Assets.Scripts.LevelBehavior
             Mirrored = false;
         }
 
-        public LevelPattern(XmlNode node)
+        public PatternInstance(XmlNode node)
         {
-            Name = node.InnerText;
             Pattern = new Pattern(node.InnerText);
             DistanceOffset = (float)Convert.ToDouble(node.Attributes["offset"].Value);
             RotationOffset = Convert.ToInt32(node.Attributes["rotate"].Value);
@@ -249,26 +245,38 @@ namespace Assets.Scripts.LevelBehavior
     }
 
     [Serializable]
-    public struct Pattern
+    public class Pattern
     {
         [Serializable]
-        public struct Wall
+        public class Wall
         {
-            public readonly int Side;
-            public readonly float Distance;
-            public readonly float Height;
+            public int Side;
+            /// <summary>
+            /// Radius. Name comes from Super Haxagon
+            /// </summary>
+            public float Distance;
+            /// <summary>
+            /// Thickness. Name comes from Super Haxagon
+            /// </summary>
+            public float Height;
 
             public Wall(int side, float distance, float height)
             {
-                this.Side = side;
-                this.Distance = distance;
-                this.Height = height;
+                Side = side;
+                Distance = distance;
+                Height = height;
+            }
+
+            public string ToXmlNodeString()
+            {
+                return $"<Wall><Distance>{Distance}</Distance><Height>{Height}</Height><Side>{Side}</Side></Wall>";
+
             }
         }
         public static Dictionary<string, Pattern> LoadedPatterns = new Dictionary<string, Pattern>();
 
-        public readonly string FileName;
-        public readonly Wall[] Walls;
+        public string FileName;
+        public List<Wall> Walls;
 
         public Pattern(string fileName)
         {
@@ -280,9 +288,10 @@ namespace Assets.Scripts.LevelBehavior
                 return;
             }
 
-            var file = Resources.Load<TextAsset>($"Patterns/{fileName}");
+            string patternText = File.ReadAllText($"{Application.streamingAssetsPath}/Patterns/{fileName}.xml");
+   
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(file.text);
+            doc.LoadXml(patternText);
 
             var walls = new List<Wall>();
 
@@ -294,8 +303,24 @@ namespace Assets.Scripts.LevelBehavior
                 walls.Add(new Wall(side, distance, height));
             }
 
-            Walls = walls.ToArray();
+            Walls = walls;
             LoadedPatterns.Add(fileName, this);
+        }
+
+        public string XmlDocumentText()
+        {
+            string xmlStart = @"<?xml version=""1.0"" encoding=""UTF-8"" standalone=""no""?>" +
+                "<Pattern><SidesRequired>6</SidesRequired>\n";
+
+            string xmlEnd = "</Pattern>";
+
+            string xmlMid = "";
+
+            foreach (Wall wall in Walls)
+            {
+                xmlMid += wall.ToXmlNodeString() + "\n";
+            }
+            return xmlStart + xmlMid + xmlEnd;
         }
     }
 }
