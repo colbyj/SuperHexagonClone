@@ -156,7 +156,7 @@ namespace Assets.Scripts.Logging
 
         public static Experiment Instance;
 
-        public enum ShGameState { Loading, Playing, InterTrialBreak, InterSessionBreak };
+        public enum ShGameState { Loading, Ready, Playing, InterTrialBreak, InterSessionBreak };
 
         public ShGameState State;
         public bool PlaySoundOnSessionStart = true;
@@ -224,7 +224,7 @@ namespace Assets.Scripts.Logging
         private void Awake()
         {
             Instance = this;
-            Application.targetFrameRate = 60;
+            Application.targetFrameRate = 240;
         }
 
         // Use this for initialization
@@ -442,10 +442,7 @@ namespace Assets.Scripts.Logging
 
         public void StartTrial()
         {
-            if (State != ShGameState.Playing)
-            {
-                State = ShGameState.Playing;
-            }
+            State = ShGameState.Ready;
 
             _movements = new List<Movement>();
             _timeLastMovementLogged = Time.time;
@@ -508,7 +505,7 @@ namespace Assets.Scripts.Logging
             else
             {
                 //Debug.Log("AfterStateLoaded");
-                State = ShGameState.Playing;
+                State = ShGameState.Ready;
             }
         }
 

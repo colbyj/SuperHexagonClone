@@ -225,6 +225,7 @@ namespace Assets.Scripts.LevelBehavior
 
         public void RemoveThreat(SHLine line)
         {
+            line.ResetLine();
             _threatPool.Release(line);
         }
 
@@ -233,8 +234,7 @@ namespace Assets.Scripts.LevelBehavior
             if (DebuggingEnabled) Debug.Log($"FinishWithLevelPattern({patternInstanceFinished.Name}), made up of {patternInstanceFinished.Threats.Count} threats.");
             foreach (SHLine line in patternInstanceFinished.Threats)
             {
-                line.ResetLine();
-                _threatPool.Release(line);
+                RemoveThreat(line);
             }
 
             patternInstanceFinished.Threats = new List<SHLine>(); // These patterns get reused, so make sure the threat list is ready to go again.

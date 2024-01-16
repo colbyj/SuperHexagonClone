@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using Assets.Scripts.LevelBehavior;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -11,8 +12,6 @@ namespace Assets.Scripts.Logging
 {
     public partial class Experiment
     {
-
-
         // The Unity documentation recommends this to unserialize json. This class is not used for any other reason.
 #pragma warning disable 0649
         private class ExperimentState
@@ -26,11 +25,16 @@ namespace Assets.Scripts.Logging
         }
 
         private class SessionList
-        { // Stupid workaround for Unity...
+        { 
+            // Workaround for Unity's built-in JSON Serialization tools.
             public List<SessionParameters> Sessions;
         }
 #pragma warning restore 0649
 
+
+#if UNITY_STANDALONE
+        private string _experimentLaunchGuid;
+#endif
 
         public string MovementsCsv()
         {
@@ -58,20 +62,28 @@ namespace Assets.Scripts.Logging
                 framerate = 0f;
             }
 
+            string durationStr = TimerTrial.Value.ToString("#.00");
+            string fpsStr = framerate.ToString("#.00");
+            string difficultyRotation = DifficultyManager.Instance.RotationSpeed.ToString("#.00000");
+            string difficultySpawning = DifficultyManager.Instance.ThreatSpeed.ToString("#.00000");
+            string interruptedStr = interrupted ? "true" : "false";
+            string movements = StringCompressor.CompressString(MovementsCsv());
+
+#if UNITY_WEBGL
             WWWForm frm = new WWWForm();
             if (ParticipantId != 0)
             {
                 frm.AddField("participantID", ParticipantId);
             }
 
-            frm.AddField("duration", TimerTrial.Value.ToString("#.00"));
-            frm.AddField("avgFps", framerate.ToString("#.00"));
+            frm.AddField("duration", durationStr);
+            frm.AddField("avgFps", fpsStr);
             frm.AddField("trialNumber", TrialNumber);
             frm.AddField("sessionNumber", SessionNumber);
-            frm.AddField("difficultyRotation", DifficultyManager.Instance.RotationSpeed.ToString("#.00000"));
-            frm.AddField("difficultySpawning", DifficultyManager.Instance.ThreatSpeed.ToString("#.00000"));
-            frm.AddField("interrupted", interrupted ? "true": "false");
-            frm.AddField("movements", StringCompressor.CompressString(MovementsCsv()));
+            frm.AddField("difficultyRotation", difficultyRotation);
+            frm.AddField("difficultySpawning", difficultySpawning);
+            frm.AddField("interrupted", interruptedStr);
+            frm.AddField("movements", movements);
 
             try
             {
@@ -82,10 +94,32 @@ namespace Assets.Scripts.Logging
             {
                 Debug.Log("Error in SaveTrial(): " + ex.Message);
             }
+#elif UNITY_STANDALONE
+            string logFile = Path.Combine(Application.streamingAssetsPath, "trials.csv");
+
+            if (!File.Exists(logFile))
+            {
+                using (File.Create(logFile))
+                {
+                }
+
+                File.AppendAllText(logFile,
+                    "InstanceID,Duration,AvgFPS,TrialNumber,SessionNumber,DifficultyRotation,DifficultySpawning,Interrupted\n");
+            }
+
+            if (string.IsNullOrEmpty(_experimentLaunchGuid))
+            {
+                _experimentLaunchGuid = Guid.NewGuid().ToString();
+            }
+
+            File.AppendAllText(logFile, 
+                $"{_experimentLaunchGuid},{durationStr},{fpsStr},{TrialNumber},{SessionNumber},{difficultyRotation},{difficultySpawning},{interruptedStr}\n");
+#endif
         }
 
         public void SaveState()
         {
+#if UNITY_WEBGL
             WWWForm frm = new WWWForm();
             if (ParticipantId != 0)
             {
@@ -100,18 +134,20 @@ namespace Assets.Scripts.Logging
 
             try
             {
-                var request = UnityWebRequest.Post(ServerUrl + "/sh_post_state", frm);
+                using var request = UnityWebRequest.Post(ServerUrl + "/sh_post_state", frm);
                 request.SendWebRequest();
             }
             catch (Exception ex)
             {
                 Debug.Log("Error in SaveState(): " + ex.Message);
             }
+#endif
         }
 
         // TODO: This doesn't handle interSession breaks.
         IEnumerator LoadState(Action doAfter)
         {
+#if UNITY_WEBGL
             string url = "";
 
             if (ParticipantId != 0)
@@ -154,10 +190,14 @@ namespace Assets.Scripts.Logging
 
                 doAfter();
             }
+#endif
+            doAfter();
+            yield return null;
         }
 
         IEnumerator LoadSettings(Action doAfter)
         {
+#if UNITY_WEBGL
             string url = "";
 
             if (ParticipantId != 0)
@@ -195,6 +235,12 @@ namespace Assets.Scripts.Logging
 
                 doAfter();
             }
+#elif UNITY_STANDALONE
+            string sessionJson = File.ReadAllText($"{Path.Combine(Application.streamingAssetsPath, "settings.json")}");
+            Sessions = JsonUtility.FromJson<SessionList>(sessionJson).Sessions;
+            doAfter();
+#endif
+            yield return null;
         }
     }
 }

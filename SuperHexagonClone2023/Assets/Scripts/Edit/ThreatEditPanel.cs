@@ -78,6 +78,7 @@ namespace Assets.Scripts.Edit
 
         private void OnDeleteClicked()
         {
+            SHLine.SelectedLine.AssociatedPatternInstance.Threats.Remove(SHLine.SelectedLine);
             SHLine.SelectedLine.AssociatedPatternInstance.Pattern.Walls.Remove(SHLine.SelectedLine.AssociatedWall);
             ThreatManager.Instance.RemoveThreat(SHLine.SelectedLine);
         }

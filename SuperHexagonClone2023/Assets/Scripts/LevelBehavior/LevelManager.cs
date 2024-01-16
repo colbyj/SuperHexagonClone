@@ -22,11 +22,16 @@ namespace Assets.Scripts.LevelBehavior
         private Experiment _experiment;
 
         private bool _levelIsActive = false;
-        private bool _canSpawnThreats = false;
 
         private void Awake()
         {
             Instance = this;
+
+            if (Application.isEditor)
+            {
+                ShowInstructions = false;
+            }
+
             _experiment = FindObjectOfType<Experiment>();
 
             string levelXmlStr = File.ReadAllText($"{Application.streamingAssetsPath}/Levels/{LevelName}.xml");
@@ -71,12 +76,17 @@ namespace Assets.Scripts.LevelBehavior
         /// </summary>
         public void BeginLevel()
         {
-            if (_experiment != null && _experiment.State != Experiment.ShGameState.Playing)
+            if (_experiment != null)
             {
-                // We shouldn't be here... Try again in a moment
-                Invoke(nameof(BeginLevel), 0.1f);
-                return;
+                if (_experiment.State != Experiment.ShGameState.Ready)
+                {
+                    // We shouldn't be here... Try again in a moment
+                    Invoke(nameof(BeginLevel), 0.1f);
+                    return;
+                }
+                _experiment.State = Experiment.ShGameState.Playing;
             }
+
 
             PlayerBehavior.IsDead = false;
             //timeLastObstacle = Time.time;

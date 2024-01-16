@@ -100,7 +100,9 @@ namespace Assets.Scripts.SHPlayer
             if (allowRotation)
             {
                 rotation *= Time.unscaledDeltaTime;
-                _rb.MoveRotation(_rb.rotation + rotation);
+                //Debug.Log($"Rotation amount: {rotation} in {Time.unscaledDeltaTime} with input {Input}. Old rotation angle was {_rb.rotation}");
+                //_rb.MoveRotation(_rb.rotation + rotation);
+                transform.Rotate(Vector3.forward, rotation);
             }
         }
 

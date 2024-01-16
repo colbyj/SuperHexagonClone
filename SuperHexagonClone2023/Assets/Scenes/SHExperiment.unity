@@ -531,7 +531,7 @@ AudioSource:
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 8300000, guid: 53727c32624fbef4fa29d3dff8b60b33, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.5
+  m_Volume: 0.4
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -853,7 +853,7 @@ LightingSettings:
   m_PVRFilteringAtrousPositionSigmaIndirect: 2
   m_PVRFilteringAtrousPositionSigmaAO: 1
   m_PVRTiledBaking: 0
---- !u!43 &1810281037
+--- !u!43 &1789061988
 Mesh:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1233,6 +1233,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5742505765244433874, guid: 42faf0457965b584cb66776457373923,
+        type: 3}
+      propertyPath: ShowInstructions
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5742505765244433878, guid: 42faf0457965b584cb66776457373923,
         type: 3}

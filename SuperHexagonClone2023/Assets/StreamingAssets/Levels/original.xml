@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8" standalone="no"?>
 <Commands>
-  <RotationDifficulty>0.75</RotationDifficulty>
-  <RotationDifficultyRate>0.01</RotationDifficultyRate>
-  <RotationDifficultyMax>2.5</RotationDifficultyMax>
+  <RotationDifficulty>30</RotationDifficulty>
+  <RotationDifficultyRate>1</RotationDifficultyRate>
+  <RotationDifficultyMax>180</RotationDifficultyMax>
   <ThreatSpeed>15</ThreatSpeed>
   <ThreatSpeedRate>0.1</ThreatSpeedRate>
-  <ThreatSpeedMax>20</ThreatSpeedMax>
+  <ThreatSpeedMax>30</ThreatSpeedMax>
   <PlayerSpeed>300</PlayerSpeed>
   <PatternRadiusOffset>0</PatternRadiusOffset>
   <CWCamera />

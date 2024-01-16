@@ -1,0 +1,6 @@
+{ 
+	"Sessions": [
+		{"InterTrialTime": 3.0, "SessionTime": 300, "InterSessionTime": 60},
+		{"InterTrialTime": 3, "SessionTime": 300, "InterSessionTime": 3}
+	]
+}

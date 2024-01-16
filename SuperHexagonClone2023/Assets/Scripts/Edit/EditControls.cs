@@ -119,6 +119,11 @@ namespace Assets.Scripts.Edit
             {
                 DifficultyManager.Instance.RotationDifficultyAccelerator.StartingValue = rotationSpeed;
                 DifficultyManager.Instance.ResetDifficulty();
+
+                if (rotationSpeed == 0)
+                {
+                    ConstantWorldRotation.Instance.Reset();
+                }
             }
         }
 
