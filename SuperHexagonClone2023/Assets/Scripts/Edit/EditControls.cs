@@ -34,7 +34,7 @@ namespace Assets.Scripts.Edit
             Instance = this;
 
             _zoomSlider.value = Camera.main.orthographicSize;
-            _rotationInput.text = DifficultyManager.Instance.RotationSpeed.ToString();
+            _rotationInput.text = DifficultyManager.Instance.CameraRotationSpeed.ToString();
             _threatSpeedInput.text = DifficultyManager.Instance.ThreatSpeed.ToString();
             _playerSpeedInput.text = DifficultyManager.Instance.PlayerRotationRate.ToString();
 
@@ -45,7 +45,7 @@ namespace Assets.Scripts.Edit
             _playerSpeedInput.onValueChanged.AddListener(OnPlayerSpeedChanged);
             _createWallButton.onClick.AddListener(OnAddWallClicked);
 
-            PlayerBehavior.OnPlayerDied += () => gameObject.SetActive(true);
+            PlayerBehavior.OnPlayerDied += (line) => gameObject.SetActive(true);
 
             LoadLevelOptions();
             _loadButton.onClick.AddListener(OnLoadClicked);
@@ -58,7 +58,7 @@ namespace Assets.Scripts.Edit
         {
             _loadDropdown.options.Clear();
 
-            string[] fileNames = Directory.GetFiles($"{Application.streamingAssetsPath}/Patterns");
+            string[] fileNames = Directory.GetFiles($"{Application.streamingAssetsPath}/../Resources/Patterns");
         
             foreach (string path in fileNames)
             {

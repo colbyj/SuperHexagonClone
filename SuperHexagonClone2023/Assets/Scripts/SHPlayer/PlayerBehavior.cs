@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.LevelVisuals;
 using Assets.Scripts.Logging;
 using UnityEngine;
 
@@ -8,8 +9,12 @@ namespace Assets.Scripts.SHPlayer
 {
     public class PlayerBehavior : MonoBehaviour
     {
-        public static Action OnPlayerDied;
+        public static PlayerBehavior Instance;
+
+        public static Action<SHLine> OnPlayerDied;
         public static Action OnPlayerRespawn;
+        public static Action OnInputStart;
+        public static Action OnInputEnd;
 
         public float Input;
 
@@ -23,12 +28,7 @@ namespace Assets.Scripts.SHPlayer
 
                 s_isDead = value;
 
-                if (s_isDead)
-                {
-                    OnPlayerDied?.Invoke();
-                    //Debug.Log("Player died!");
-                }
-                else
+                if (!s_isDead)
                 {
                     OnPlayerRespawn?.Invoke();
                     //Debug.Log("Player respawned!");
@@ -36,6 +36,9 @@ namespace Assets.Scripts.SHPlayer
             }
             get => s_isDead;
         }
+
+        private bool _isMoving;
+
         private AudioSource _audioSource;
         private Rigidbody2D _rb;
         private PolygonCollider2D _polygonCollider;
@@ -44,6 +47,8 @@ namespace Assets.Scripts.SHPlayer
 
         private void Awake()
         {
+            Instance = this;
+
             _audioSource = GetComponent<AudioSource>();
             _rb = GetComponent<Rigidbody2D>();
             _polygonCollider = GetComponent<PolygonCollider2D>();
@@ -61,9 +66,21 @@ namespace Assets.Scripts.SHPlayer
                 Input = UnityEngine.Input.GetAxis("Horizontal");
             }
 
+            if (_isMoving && Input == 0)
+            {
+                _isMoving = false;
+                OnInputEnd?.Invoke();
+            }
+
             if (Input == 0)
             {
                 return;
+            }
+
+            if (!_isMoving)
+            {
+                _isMoving = true;
+                OnInputStart?.Invoke();
             }
 
             float rotation = 0;
@@ -134,8 +151,9 @@ namespace Assets.Scripts.SHPlayer
         {
             if (GameParameters.EnableCollisions && col.gameObject.tag == "Threat" && col is EdgeCollider2D)
             {
-                Debug.Log(
-                    $"You are not a super hexagon because you touched {col.gameObject.name} with parent {col.gameObject.transform.parent.name}");
+                //Debug.Log($"You are not a super hexagon because you touched {col.gameObject.name} with parent {col.gameObject.transform.parent.name}");
+                SHLine lineTouched = col.gameObject.GetComponent<SHLine>();
+                OnPlayerDied?.Invoke(lineTouched);
                 Die();
             }
         }
@@ -150,6 +168,7 @@ namespace Assets.Scripts.SHPlayer
             {
                 exp.EndTrial();
             }
+            DifficultyManager.Instance.ResetDifficulty();
 
             IsDead = true;
         }

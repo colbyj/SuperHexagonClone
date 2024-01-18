@@ -88,7 +88,7 @@ namespace Assets.Scripts.LevelBehavior
             StartingValue = DefaultDifficulty.ThreatVelocity
         };
 
-        public float RotationSpeed => RotationDifficultyAccelerator.GetValue();
+        public float CameraRotationSpeed => RotationDifficultyAccelerator.GetValue();
 
         public float ThreatSpeed => ThreatDifficultyAccelerator.GetValue();
 
@@ -99,7 +99,7 @@ namespace Assets.Scripts.LevelBehavior
         {
             Instance = this;
 
-            PlayerBehavior.OnPlayerDied += ResetDifficulty;
+            //PlayerBehavior.OnPlayerDied += (threat) => ResetDifficulty();
         }
 
         void Start()

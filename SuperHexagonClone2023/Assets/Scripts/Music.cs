@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Assets.Scripts.LevelBehavior;
+using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
 
@@ -14,6 +15,11 @@ public class Music : MonoBehaviour
     {
         AudioSource audioSource = GetComponent<AudioSource>();
 
+        Experiment.OnSessionEnd += () =>
+        {
+            audioSource.Stop();
+        };
+            
         LevelManager.OnFirstBegin += () =>
         {
             if (!paused)
@@ -31,7 +37,7 @@ public class Music : MonoBehaviour
             }
         };
 
-        PlayerBehavior.OnPlayerDied += () =>
+        PlayerBehavior.OnPlayerDied += (line) =>
         {
             paused = true;
             audioSource.Pause();

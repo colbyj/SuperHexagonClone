@@ -23,6 +23,7 @@ namespace Assets.Scripts.LevelBehavior
         public Action<PatternInstance> PatternIsPastPlayer;
         public Action<PatternInstance> PatternIsAtPlayer;
         public Action<PatternInstance> PatternIsOffScreen;
+        public Action<PatternInstance> PatternHasSpawned;
 
         public List<PatternInstance> PatternsOnScreen = new();
         private ParsedLevel Level => LevelManager.Instance.Level;
@@ -254,6 +255,8 @@ namespace Assets.Scripts.LevelBehavior
 
             patternInstanceToSpawn.UpdateClosestAndFurthestThreats();
             PatternsOnScreen.Add(patternInstanceToSpawn);
+            
+            PatternHasSpawned?.Invoke(patternInstanceToSpawn);
         }
 
         public void Clear()

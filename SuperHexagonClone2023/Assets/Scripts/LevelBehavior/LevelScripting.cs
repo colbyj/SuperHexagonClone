@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading;
 using System.Xml;
 using Assets.Scripts.LevelVisuals;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Assets.Scripts.LevelBehavior 
 {
@@ -190,12 +193,14 @@ namespace Assets.Scripts.LevelBehavior
         public bool Mirrored;
         public bool LastBeforeRestart;
 
-        public string Name => Pattern.FileName;
+        public string Name => Pattern.Name;
 
         // These are used for viewing the level pattern
         public List<SHLine> Threats = new List<SHLine>();
         public SHLine ClosestThreat = null;
         public SHLine FurthestThreat = null;
+
+        public float TotalLength => FurthestThreat.RadiusOuter() - ClosestThreat.Radius;
 
         public PatternInstance(Pattern pattern)
         {
@@ -273,26 +278,48 @@ namespace Assets.Scripts.LevelBehavior
 
             }
         }
-        public static Dictionary<string, Pattern> LoadedPatterns = new Dictionary<string, Pattern>();
 
-        public string FileName;
+        public string Name;
         public List<Wall> Walls;
 
-        public Pattern(string fileName)
+        private static Dictionary<string, XmlDocument> s_loadedPatterns = new();
+
+        public Pattern(string name)
         {
-            FileName = fileName;
+            Name = name;
+            XmlDocument doc;
 
-            if (LoadedPatterns.ContainsKey(fileName))
+            if (s_loadedPatterns.ContainsKey(name))
             {
-                Walls = LoadedPatterns[fileName].Walls;
-                return;
+                doc = s_loadedPatterns[name];
             }
+            else
+            {
+                try
+                {
+                    string patternText;
 
-            string patternText = File.ReadAllText($"{Application.streamingAssetsPath}/Patterns/{fileName}.xml");
-   
-            XmlDocument doc = new XmlDocument();
-            doc.LoadXml(patternText);
+                    if (Application.isEditor)
+                    {
+                        patternText = File.ReadAllText($"{Application.streamingAssetsPath}/../Resources/Patterns/{name}.xml");
+                    }
+                    else
+                    {
+                        patternText = Resources.Load<TextAsset>($"Patterns/{name}").text;
+                    }
 
+                    doc = new XmlDocument();
+                    doc.LoadXml(patternText);
+
+                    s_loadedPatterns.Add(name, doc);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogError($"Could not load pattern {name}, exception was: {e.Message}");
+                    return;
+                }
+            }
+            
             var walls = new List<Wall>();
 
             foreach (XmlNode node in doc.DocumentElement.SelectNodes("/Pattern/Wall"))
@@ -304,7 +331,6 @@ namespace Assets.Scripts.LevelBehavior
             }
 
             Walls = walls;
-            LoadedPatterns.Add(fileName, this);
         }
 
         public string XmlDocumentText()

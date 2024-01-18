@@ -11,7 +11,7 @@ namespace Assets.Scripts.Logging
         private string _movementsCsvDecrypted;
         public bool MovementsIsCompressed = true;
 
-        private List<Experiment.Movement> _movements;
+        private List<Movement> _movements;
         private float _startTime = 0f;
 
         private PlayerBehavior _controls;
@@ -29,7 +29,7 @@ namespace Assets.Scripts.Logging
                 _movementsCsvDecrypted = MovementsCsv;
             }
 
-            _movements = new List<Experiment.Movement>();
+            _movements = new List<Movement>();
 
             string[] movementsCsvSplit = _movementsCsvDecrypted.Split(';');
 
@@ -40,7 +40,7 @@ namespace Assets.Scripts.Logging
                     continue;
                 }
 
-                _movements.Add(new Experiment.Movement(movementsCsvSplit[i]));
+                _movements.Add(new Movement(movementsCsvSplit[i]));
             }
 
             //movements = Array.ConvertAll(movementsCSV.Split(','), s => int.Parse(s));

@@ -3,9 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Assets.Scripts.LevelBehavior
 {
@@ -21,6 +23,7 @@ namespace Assets.Scripts.LevelBehavior
         public bool ShowInstructions = true;
         private Experiment _experiment;
 
+        private bool _levelIsLoaded = false;
         private bool _levelIsActive = false;
 
         private void Awake()
@@ -34,14 +37,36 @@ namespace Assets.Scripts.LevelBehavior
 
             _experiment = FindObjectOfType<Experiment>();
 
+            PlayerBehavior.OnPlayerDied += (threat) => OnPlayerDied();
+            PlayerBehavior.OnPlayerRespawn += OnPlayerRespawn;
+
+            StartCoroutine(ParseLevel());
+        }
+
+        private IEnumerator ParseLevel()
+        {
+
+#if UNITY_WEBGL //&& !UNITY_EDITOR
+            string url = $"{Application.streamingAssetsPath}/Levels/{LevelName}.xml";
+            //string url = "http://127.0.0.1:5001/superhexagon/StreamingAssets/Levels/original.xml";
+            using UnityWebRequest www = UnityWebRequest.Get(url);
+            yield return www.SendWebRequest();
+
+            if (www.result != UnityWebRequest.Result.Success)
+            {
+                Debug.Log(www.error);
+            }
+            string levelXmlStr = www.downloadHandler.text;
+#else
             string levelXmlStr = File.ReadAllText($"{Application.streamingAssetsPath}/Levels/{LevelName}.xml");
+#endif
 
             Level = new ParsedLevel();
             Level.ParseLevelXml(levelXmlStr);
             StartCoroutine(nameof(FirstBeginLevel));
-
-            PlayerBehavior.OnPlayerDied += OnPlayerDied;
-            PlayerBehavior.OnPlayerRespawn += OnPlayerRespawn;
+            
+            yield return null;
+            _levelIsLoaded = true;
         }
 
         private void OnPlayerDied()
@@ -112,6 +137,9 @@ namespace Assets.Scripts.LevelBehavior
 
         public void Update()
         {
+            if (!_levelIsLoaded)
+                return;
+
             LevelCommand nextCommand = Level.NextCommand;
 
             // Try to handle any non-spawning events immediately. 

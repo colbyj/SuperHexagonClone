@@ -17,7 +17,7 @@ namespace Assets.Scripts.Edit
             Instance = this;
             PlayerBehavior.IsDead = true;
             ThreatManager.Instance.PatternIsOffScreen += PatternIsOffScreen;
-            PlayerBehavior.OnPlayerDied += PlayerDied;
+            PlayerBehavior.OnPlayerDied += (line) => PlayerDied();
 
             LoadPatternFromFileName();
         }
@@ -55,7 +55,7 @@ namespace Assets.Scripts.Edit
         public void SavePattern(string fileName)
         {
             File.WriteAllText(
-                $"{Application.streamingAssetsPath}/Patterns/{fileName}.xml", 
+                $"{Application.streamingAssetsPath}/../Resources/Patterns/{fileName}.xml", 
                 CurrentPattern.XmlDocumentText()
             );
         }

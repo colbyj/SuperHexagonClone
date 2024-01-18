@@ -109,34 +109,6 @@ namespace Assets.Scripts.Logging
 
         }
 
-        public class Movement
-        {
-            public float DeltaTime;
-            public int Rotation;
-
-            public Movement(float deltaTime, int rotation)
-            {
-                this.DeltaTime = deltaTime;
-                this.Rotation = rotation;
-            }
-
-            public Movement(string csv)
-            {
-                if (csv.EndsWith(";"))
-                {
-                    csv = csv.Remove(csv.Length, 1); // Remove trailing delimiter.
-                }
-                string[] movementParts = csv.Split(',');
-                this.DeltaTime = float.Parse(movementParts[0]);
-                this.Rotation = int.Parse(movementParts[1]);
-            }
-
-            public string Csv()
-            {
-                return string.Format("{0},{1};", DeltaTime, Rotation);
-            }
-        }
-
         [Serializable]
         public class SessionParameters
         {
@@ -155,6 +127,7 @@ namespace Assets.Scripts.Logging
         }
 
         public static Experiment Instance;
+        public static Action OnSessionEnd;
 
         public enum ShGameState { Loading, Ready, Playing, InterTrialBreak, InterSessionBreak };
 
@@ -163,11 +136,6 @@ namespace Assets.Scripts.Logging
 
         private int _trialFrames = 0;
         private bool _newHighScore = false;
-
-        //public SHLevelNew levelManager;
-        //public StageConstructor stageConstructor;
-
-        // consider a "SHTimer" class with value, text, direction
 
         // Current trial and session
         public ShTimer TimerTrial = new ShTimer();
@@ -216,15 +184,16 @@ namespace Assets.Scripts.Logging
 
         // Variables for logging player actions.
         [Header("Movement Logging")]
-        List<Movement> _movements = new List<Movement>();
         float _timeLastMovementLogged = 0f; // In-game time indicating when movement was last logged
         public float TimeDeltaMovement = 0.150f; // In seconds
         PlayerBehavior _playerControls;
 
+        private TrialLogging _trialLogging = new();
+
         private void Awake()
         {
             Instance = this;
-            Application.targetFrameRate = 240;
+            Application.targetFrameRate = 120;
         }
 
         // Use this for initialization
@@ -260,18 +229,13 @@ namespace Assets.Scripts.Logging
 
             if (State == ShGameState.Playing)
             {
-                /*if (!LevelManager.Instance.Started)
-            {
-                return;
-            }*/
-
                 _trialFrames++;
                 TimerTrial.Update(deltaT);
                 TimerSession.Update(deltaT);
 
                 if (TimeDeltaMovement + _timeLastMovementLogged < Time.time)
                 {
-                    _movements.Add(new Movement(Time.time - _timeLastMovementLogged, (int)_playerControls.transform.eulerAngles.z));
+                    _trialLogging.Movements.Add(new Movement(Time.time - _timeLastMovementLogged, (int)_playerControls.transform.eulerAngles.z));
                     _timeLastMovementLogged = Time.time;
                 }
 
@@ -374,7 +338,7 @@ namespace Assets.Scripts.Logging
 
             if (!onGameStart)
             {
-                SaveTrial(true);
+                _trialLogging.SaveTrial(_trialFrames, this, true);
                 TrialNumber++;
                 SaveState();
                 SessionNumber++;
@@ -393,12 +357,14 @@ namespace Assets.Scripts.Logging
                 Message.text = "Thanks for playing!";
                 Message.enabled = true;
                 Countdown.enabled = false;
-                Invoke("EndGame", 1.0f);
+                Invoke(nameof(EndGame), 1.0f);
             }
             else
             {
                 State = ShGameState.InterSessionBreak;
             }
+
+            OnSessionEnd?.Invoke();
         }
 
         public void StartSession()
@@ -424,12 +390,12 @@ namespace Assets.Scripts.Logging
         public void EndTrial()
         {
             TimerTrial.Stop();
-            LaneManager.Instance.ResetLanes();
-            LevelManager.Instance.StopLevel();
-
-            SaveTrial();
+            _trialLogging.SaveTrial(_trialFrames, this);
             TrialNumber++;
             SaveState();
+
+            LaneManager.Instance.ResetLanes();
+            LevelManager.Instance.StopLevel();
 
             InterTrialTimer.Reset();
             InterTrialTimer.Start();
@@ -444,7 +410,7 @@ namespace Assets.Scripts.Logging
         {
             State = ShGameState.Ready;
 
-            _movements = new List<Movement>();
+            _trialLogging.Movements = new List<Movement>();
             _timeLastMovementLogged = Time.time;
 
             Message.enabled = false;
