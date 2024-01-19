@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.Edit;
 using Assets.Scripts.LevelVisuals;
 using Assets.Scripts.Logging;
@@ -35,8 +37,11 @@ namespace Assets.Scripts.LevelBehavior
         
         [SerializeField] private int _poolStartingSize = 100;
         [SerializeField] private float _firstPatternRadius = 50f;
+        [SerializeField] private bool _areTriggersVisible;
 
         public static bool IsEditScene = false;
+        public static bool AreTriggersVisible => Instance != null && Instance._areTriggersVisible;
+
 
         /// <summary>
         /// Note that this is the inner radius, not the outer radius.
@@ -73,6 +78,9 @@ namespace Assets.Scripts.LevelBehavior
         // Start is called before the first frame update
         private void Awake()
         {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+
             Instance = this;
             _threatPool = new ObjectPool<SHLine>(CreateThreat, OnGetThreatFromPool, OnReleaseThreatToPool,
                 defaultCapacity: _poolStartingSize);

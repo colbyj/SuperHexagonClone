@@ -154,5 +154,8 @@ MonoBehaviour:
   _thickness: 0
   _needsUpdate: 1
   _points: []
+  TriggerMaterial: {fileID: 2100000, guid: 757fc2c3cf15e324faf0034ae6d408bd, type: 2}
+  TriggerPreviewMaterial: {fileID: 2100000, guid: 77e2c9843cfae68428c8fcbea494cf53,
+    type: 2}
   StandardMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
   EditMaterial: {fileID: 2100000, guid: fa71839878fe1bf4f95a256d7af0b70e, type: 2}

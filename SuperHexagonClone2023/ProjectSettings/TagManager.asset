@@ -16,6 +16,7 @@ TagManager:
   - P
   - Timer
   - LevelManager
+  - Trigger
   layers:
   - Default
   - TransparentFX

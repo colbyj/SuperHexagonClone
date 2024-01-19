@@ -19,6 +19,7 @@ namespace Assets.Scripts.Edit
         [SerializeField] private TMP_InputField _iThickness;
         [SerializeField] private TMP_InputField _iDistance;
         [SerializeField] private Button _bDelete;
+        [SerializeField] private Toggle _tIsTrigger; 
 
         // Start is called before the first frame update
         private void Awake()
@@ -28,6 +29,7 @@ namespace Assets.Scripts.Edit
             _sSide.onValueChanged.AddListener(OnSideChanged);
             _iThickness.onValueChanged.AddListener(OnThicknessChanged);
             _iDistance.onValueChanged.AddListener(OnDistanceChanged);
+            _tIsTrigger.onValueChanged.AddListener(OnIsTriggerChanged);
 
             SHLine.SelectedThreatChanged += () =>
             {
@@ -41,6 +43,7 @@ namespace Assets.Scripts.Edit
                     _sSide.value = SelectedWall.Side;
                     _iThickness.text = SelectedWall.Height.ToString();
                     _iDistance.text = SelectedWall.Distance.ToString();
+                    _tIsTrigger.isOn = SelectedWall.IsTrigger;
                 }
             };
 
@@ -76,6 +79,12 @@ namespace Assets.Scripts.Edit
             }
         }
 
+        private void OnIsTriggerChanged(bool isTrigger)
+        {
+            SelectedWall.IsTrigger = isTrigger;
+            SHLine.SelectedLine.RebuildFromAssociations();
+        }
+
         private void OnDeleteClicked()
         {
             SHLine.SelectedLine.AssociatedPatternInstance.Threats.Remove(SHLine.SelectedLine);
@@ -97,7 +106,7 @@ namespace Assets.Scripts.Edit
                 height = 3;
             }
 
-            return new Pattern.Wall(side, distance, height);
+            return new Pattern.Wall(side, distance, height, _tIsTrigger.isOn);
         }
     }
 }

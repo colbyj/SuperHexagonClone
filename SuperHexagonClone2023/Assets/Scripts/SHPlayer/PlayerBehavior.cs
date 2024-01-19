@@ -12,6 +12,7 @@ namespace Assets.Scripts.SHPlayer
         public static PlayerBehavior Instance;
 
         public static Action<SHLine> OnPlayerDied;
+        public static Action<SHLine> OnCheckpointTrigger;
         public static Action OnPlayerRespawn;
         public static Action OnInputStart;
         public static Action OnInputEnd;
@@ -147,14 +148,30 @@ namespace Assets.Scripts.SHPlayer
             return currentLanes;
         }
 
-        private void OnTriggerEnter2D(Collider2D col)
+        private void OnTriggerEnter2D(Collider2D collision)
         {
-            if (GameParameters.EnableCollisions && col.gameObject.tag == "Threat" && col is EdgeCollider2D)
+            if (!GameParameters.EnableCollisions)
+                return;
+
+            if (collision.gameObject.tag == "Threat" && collision is EdgeCollider2D)
             {
                 //Debug.Log($"You are not a super hexagon because you touched {col.gameObject.name} with parent {col.gameObject.transform.parent.name}");
-                SHLine lineTouched = col.gameObject.GetComponent<SHLine>();
+                SHLine lineTouched = collision.gameObject.GetComponent<SHLine>();
                 OnPlayerDied?.Invoke(lineTouched);
                 Die();
+            }
+        }
+
+        private void OnTriggerExit2D(Collider2D collision)
+        {
+            if (!GameParameters.EnableCollisions)
+                return;
+
+            // Player went past a checkpoint trigger.
+            if (collision.gameObject.tag == "Trigger" && collision is PolygonCollider2D)
+            {
+                SHLine lineTouched = collision.gameObject.GetComponent<SHLine>();
+                OnCheckpointTrigger?.Invoke(lineTouched);
             }
         }
 

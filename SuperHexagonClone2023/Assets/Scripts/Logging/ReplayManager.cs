@@ -19,7 +19,7 @@ namespace Assets.Scripts.Logging
     {
         TouchedPattern, 
         PatternSpawned, 
-        PatternObstaclePassed,
+        CheckpointTrigger,
         PatternIsPastPlayer, 
         PatternIsAtPlayer, 
         PatternIsOffScreen,
@@ -44,7 +44,6 @@ namespace Assets.Scripts.Logging
         public float EventRadius;
         public float PatternOuterRadius;
         public float PatternInnerRadius;
-
         
         public ReplayEvent(ReplayEventType type)
         {
@@ -62,8 +61,8 @@ namespace Assets.Scripts.Logging
         
         public string ToCsv()
         {
-            return $"{Type},{SessionNumber},{TrialNumber},{TrialTime},{GameTime},{PlayerRotation},{RotationInput},{CameraRotationSpeed}," +
-                   $"{ThreatSpeed},{PlayerRotationRate},{PatternName},{EventRadius},{PatternOuterRadius},{PatternInnerRadius}";
+            return $"{Type}|{SessionNumber}|{TrialNumber}|{TrialTime}|{GameTime}|{PlayerRotation}|{RotationInput}|{CameraRotationSpeed}|" +
+                   $"{ThreatSpeed}|{PlayerRotationRate}|{PatternName}|{EventRadius}|{PatternOuterRadius}|{PatternInnerRadius}";
         }
     }
 
@@ -99,6 +98,12 @@ namespace Assets.Scripts.Logging
                     SaveEvents();
                 };
 
+            PlayerBehavior.OnCheckpointTrigger +=
+                (SHLine trigger) =>
+                {
+                    AddThreatLog(trigger, ReplayEventType.CheckpointTrigger);
+                };
+
             PlayerBehavior.OnInputStart += () => AddBasicLog(ReplayEventType.MoveStart);
             PlayerBehavior.OnInputEnd += () => AddBasicLog(ReplayEventType.MoveEnd);
 
@@ -128,7 +133,17 @@ namespace Assets.Scripts.Logging
             re.PatternInnerRadius = threat.AssociatedPatternInstance.ClosestThreat.Radius;
             re.PatternOuterRadius = threat.AssociatedPatternInstance.FurthestThreat.RadiusOuter();
 
-            _events.Add(re);
+            if (_events.Count() > 0)
+            {
+                ReplayEvent lastEvent = _events[_events.Count() - 1];
+
+                if (!(re.Type == lastEvent.Type && re.GameTime == lastEvent.GameTime))
+                    _events.Add(re); // Only add the event if it wasn't just logged
+            }
+            else 
+            {
+                _events.Add(re);
+            }
         }
 
         private void SaveEvents()
@@ -155,8 +170,8 @@ namespace Assets.Scripts.Logging
                 file.Close();
 
                 File.AppendAllText(logFile,
-                    "Type,SessionNumber,TrialNumber,TrialTime,GameTime,PlayerRotation,RotationInput,CameraRotationSpeed,"+
-                    "ThreatSpeed,PlayerRotationRate,PatternName,EventRadius,PatternOuterRadius,PatternInnerRadius\n");
+                    "Type|SessionNumber|TrialNumber|TrialTime|GameTime|PlayerRotation|RotationInput|CameraRotationSpeed|"+
+                    "ThreatSpeed|PlayerRotationRate|PatternName|EventRadius|PatternOuterRadius|PatternInnerRadius\n");
             }
 
             List<string> lines = new();
@@ -184,6 +199,7 @@ namespace Assets.Scripts.Logging
             using UnityWebRequest request =
                 UnityWebRequest.Post(Experiment.Instance.ServerUrl + "/sh_post_replay", data);
             yield return request.SendWebRequest();
+            request.Dispose();
         }
     }
 }

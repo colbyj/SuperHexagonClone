@@ -264,18 +264,19 @@ namespace Assets.Scripts.LevelBehavior
             /// Thickness. Name comes from Super Haxagon
             /// </summary>
             public float Height;
+            public bool IsTrigger;
 
-            public Wall(int side, float distance, float height)
+            public Wall(int side, float distance, float height, bool isTrigger)
             {
                 Side = side;
                 Distance = distance;
                 Height = height;
+                IsTrigger = isTrigger;
             }
 
             public string ToXmlNodeString()
             {
-                return $"<Wall><Distance>{Distance}</Distance><Height>{Height}</Height><Side>{Side}</Side></Wall>";
-
+                return $"<Wall><Distance>{Distance}</Distance><Height>{Height}</Height><Side>{Side}</Side><IsTrigger>{IsTrigger.ToString().ToLowerInvariant()}</IsTrigger></Wall>";
             }
         }
 
@@ -311,7 +312,8 @@ namespace Assets.Scripts.LevelBehavior
                     doc = new XmlDocument();
                     doc.LoadXml(patternText);
 
-                    s_loadedPatterns.Add(name, doc);
+                    if (!Application.isEditor)
+                        s_loadedPatterns.Add(name, doc);
                 }
                 catch (Exception e)
                 {
@@ -327,7 +329,11 @@ namespace Assets.Scripts.LevelBehavior
                 int side = Convert.ToInt32(node.SelectSingleNode("Side").InnerText);
                 float distance = (float)Convert.ToDouble(node.SelectSingleNode("Distance").InnerText);
                 float height = (float)Convert.ToDouble(node.SelectSingleNode("Height").InnerText);
-                walls.Add(new Wall(side, distance, height));
+
+                var isTriggerNode = node.SelectSingleNode("IsTrigger");
+                bool isTrigger = isTriggerNode != null ? Convert.ToBoolean(isTriggerNode.InnerText) : false; 
+
+                walls.Add(new Wall(side, distance, height, isTrigger));
             }
 
             Walls = walls;

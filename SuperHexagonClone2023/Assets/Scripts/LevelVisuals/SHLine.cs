@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Linq;
-using System.Threading;
 using Assets.Scripts.LevelBehavior;
 using Assets.Scripts.SHPlayer;
 using CustomExtensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using static Assets.Scripts.LevelBehavior.Pattern;
 
 namespace Assets.Scripts.LevelVisuals
 {
@@ -22,7 +20,6 @@ namespace Assets.Scripts.LevelVisuals
     public class SHLine : MonoBehaviour
     {
         private static SHLine s_selectedLine;
-
         public static Action SelectedThreatChanged;
 
         [SerializeField] private bool _isSelected;
@@ -41,10 +38,31 @@ namespace Assets.Scripts.LevelVisuals
         private int[] _indices;
 
         // Materials
+        public Material TriggerMaterial;
+        public Material TriggerPreviewMaterial;
         public Material StandardMaterial;
         public Material EditMaterial;
 
         private float _spawnRadiusOffset;
+
+
+        /// <summary>
+        /// Are we repurposing the SHLine to simply trigger logs?
+        /// </summary>
+        public bool IsTriggerOnly
+        {
+            get { return _isTriggerOnly; }
+            set
+            {
+                _isTriggerOnly = value;
+                tag = _isTriggerOnly ? "Trigger" : _defaultTag;
+                _polyCol.isTrigger = _isTriggerOnly;
+                SetCorrectMaterial();
+            }
+        }
+        [SerializeField] private bool _isTriggerOnly;
+        [SerializeField] private string _defaultTag = "Threat";
+
 
         public PatternInstance AssociatedPatternInstance
         {
@@ -71,16 +89,8 @@ namespace Assets.Scripts.LevelVisuals
                 }
 
                 _isSelected = value;
-                if (value)
-                {
-                    _meshRenderer.material = EditMaterial;
-                    SelectedLine = this;
-                }
-                else
-                {
-                    _meshRenderer.material = StandardMaterial;
-                    SelectedLine = null;
-                }
+                SelectedLine = _isSelected ? this : null;
+                SetCorrectMaterial();
             }
         }
 
@@ -139,12 +149,13 @@ namespace Assets.Scripts.LevelVisuals
             {
                 StandardMaterial = _meshRenderer.material;
             }
-            else
-            {
-                _meshRenderer.material = StandardMaterial;
-            }
 
-            if (tag == "Threat" && resetPosition)
+            _polyCol.isTrigger = _isTriggerOnly;
+
+            // This is just done to call the property's get function.
+            IsTriggerOnly = _isTriggerOnly;
+
+            if ((tag == "Threat" || tag == "Trigger") && resetPosition)
             {
                 Radius = ThreatManager.SpawnPatternsUntilRadius; // what is set in the prefab is ignored
             }
@@ -162,6 +173,18 @@ namespace Assets.Scripts.LevelVisuals
             if (_needsUpdate)
             {
                 UpdatePolygon();
+            }
+        }
+
+        private void SetCorrectMaterial()
+        {
+            if (_isTriggerOnly && !_isSelected)
+            {
+                _meshRenderer.material = ThreatManager.AreTriggersVisible ? TriggerPreviewMaterial : TriggerMaterial;
+            }
+            else
+            {
+                _meshRenderer.material = _isSelected ? EditMaterial : StandardMaterial;
             }
         }
 
@@ -284,6 +307,7 @@ namespace Assets.Scripts.LevelVisuals
 
             Radius = wallDistance;
             Thickness = AssociatedWall.Height;
+            IsTriggerOnly = AssociatedWall.IsTrigger;
 
             // Reset the position and rotation of the line/threat.
             transform.position = new Vector3(0f, 0f, -0.2f);
@@ -298,11 +322,17 @@ namespace Assets.Scripts.LevelVisuals
 
         public void StartFadeIn()
         {
+            if (tag != "Threat")
+                return;
+
             StartCoroutine(FadeIn());
         }
 
         private void StartFadeOut()
         {
+            if (tag != "Threat")
+                return;
+
             StartCoroutine(FadeOut());
         }
 

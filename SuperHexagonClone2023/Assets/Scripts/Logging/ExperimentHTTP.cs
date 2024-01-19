@@ -48,68 +48,65 @@ namespace Assets.Scripts.Logging
             frm.AddField("trialNumber", TrialNumber);
             frm.AddField("maxDuration", MaxDuration.ToString("#.00"));
 
-            try
-            {
-                using var request = UnityWebRequest.Post(ServerUrl + "/sh_post_state", frm);
-                request.SendWebRequest();
-            }
-            catch (Exception ex)
-            {
-                Debug.Log("Error in SaveState(): " + ex.Message);
-            }
+            StartCoroutine(SaveStateWebRequest(frm));
 #endif
+        }
+
+        private IEnumerator SaveStateWebRequest(WWWForm form)
+        {
+            using var request = UnityWebRequest.Post(ServerUrl + "/sh_post_state", form);
+            yield return request.SendWebRequest();
         }
 
         // TODO: This doesn't handle interSession breaks.
         IEnumerator LoadState(Action doAfter)
         {
-//#if UNITY_WEBGL
-//            string url = "";
-//
-//            if (ParticipantId != 0)
-//            {
-//                url = ServerUrl + "/sh_get_state/" + ParticipantId;
-//            }
-//            else
-//            {
-//                url = ServerUrl + "/sh_get_state";
-//            }
-//
-//            using (UnityWebRequest request = UnityWebRequest.Get(url))
-//            {
-//
-//                yield return request.SendWebRequest();
-//
-//                if (request.isNetworkError || request.isHttpError)
-//                {
-//                    Debug.Log(request.error);
-//                }
-//                else
-//                {
-//                    string response = request.downloadHandler.text;
-//
-//                    if (response.Length == 0)
-//                    {
-//                        // This will happen for new participants too.
-//                        //Debug.Log("Unable to load state! Does the participant exist? Do they have a valid condition?");
-//                    }
-//                    else
-//                    {
-//                        ExperimentState state = JsonUtility.FromJson<ExperimentState>(response);
-//                        InterSessionTimeRemaining = state.InterSessionTimeRemaining;
-//                        SessionTimeRemaining = state.SessionTimeRemaining;
-//                        SessionNumber = state.SessionNumber;
-//                        TrialNumber = state.TrialNumber;
-//                        MaxDuration = state.MaxDuration;
-//                    }
-//                }
-//
-//                doAfter();
-//            }
-//#else
+#if UNITY_WEBGL
+            string url = "";
+
+            if (ParticipantId != 0)
+            {
+                url = ServerUrl + "/sh_get_state/" + ParticipantId;
+            }
+            else
+            {
+                url = ServerUrl + "/sh_get_state";
+            }
+
+            using UnityWebRequest request = UnityWebRequest.Get(url);
+
+            yield return request.SendWebRequest();
+
+            if (request.result != UnityWebRequest.Result.Success)
+            {
+                Debug.Log(request.error);
+            }
+            else
+            {
+                string response = request.downloadHandler.text;
+
+                if (response.Length == 0)
+                {
+                    // This will happen for new participants too.
+                    //Debug.Log("Unable to load state! Does the participant exist? Do they have a valid condition?");
+                }
+                else
+                {
+                    ExperimentState state = JsonUtility.FromJson<ExperimentState>(response);
+                    InterSessionTimeRemaining = state.InterSessionTimeRemaining;
+                    SessionTimeRemaining = state.SessionTimeRemaining;
+                    SessionNumber = state.SessionNumber;
+                    TrialNumber = state.TrialNumber;
+                    MaxDuration = state.MaxDuration;
+                }
+            }
+
+            request.Dispose();
+            doAfter();
+#else
             doAfter();
             yield return null;
-//#endif
+#endif
         }
 
         IEnumerator LoadSettings(Action doAfter)
@@ -129,7 +126,7 @@ namespace Assets.Scripts.Logging
             using UnityWebRequest request = UnityWebRequest.Get(url);
             yield return request.SendWebRequest();
 
-            if (request.isNetworkError || request.isHttpError)
+            if (request.result != UnityWebRequest.Result.Success)
             {
                 Debug.Log(request.error);
             }
@@ -147,6 +144,7 @@ namespace Assets.Scripts.Logging
                     Sessions = JsonUtility.FromJson<SessionList>(response).Sessions;
                 }
             }
+            request.Dispose();
 
             doAfter();
 #elif UNITY_STANDALONE

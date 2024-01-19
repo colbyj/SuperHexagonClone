@@ -49,4 +49,4 @@ MonoBehaviour:
     type: 3}
   ActiveThreats: []
   _poolStartingSize: 100
-  IsPaused: 0
+  _firstPatternRadius: 20

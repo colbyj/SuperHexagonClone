@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading;
 using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
@@ -57,6 +56,7 @@ namespace Assets.Scripts.LevelBehavior
                 Debug.Log(www.error);
             }
             string levelXmlStr = www.downloadHandler.text;
+            www.Dispose();
 #else
             string levelXmlStr = File.ReadAllText($"{Application.streamingAssetsPath}/Levels/{LevelName}.xml");
 #endif

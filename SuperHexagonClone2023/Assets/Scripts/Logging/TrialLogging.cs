@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.LevelBehavior;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -94,16 +95,7 @@ namespace Assets.Scripts.Logging
             frm.AddField("interrupted", interruptedStr);
             frm.AddField("movements", movements);
 
-            try
-            {
-                // TODO: All UnityWebRequests should be in coroutines
-                var request = UnityWebRequest.Post(experiment.ServerUrl + "/sh_post_trial", frm);
-                request.SendWebRequest();
-            }
-            catch (Exception ex)
-            {
-                Debug.Log("Error in SaveTrial(): " + ex.Message);
-            }
+            experiment.StartCoroutine(PostTrialWebRequest(experiment.ServerUrl + "/sh_post_trial", frm));
 #elif UNITY_STANDALONE
             string logFile = Path.Combine(Application.streamingAssetsPath, "trials.csv");
 
@@ -125,6 +117,13 @@ namespace Assets.Scripts.Logging
             File.AppendAllText(logFile,
                 $"{_experimentLaunchGuid},{durationStr},{fpsStr},{experiment.TrialNumber},{experiment.SessionNumber},{difficultyRotation},{difficultySpawning},{interruptedStr}\n");
 #endif
+        }
+
+        private IEnumerator PostTrialWebRequest(string url, WWWForm form)
+        {
+            var request = UnityWebRequest.Post(url, form);
+            yield return request.SendWebRequest();
+            request.Dispose();
         }
     }
 }

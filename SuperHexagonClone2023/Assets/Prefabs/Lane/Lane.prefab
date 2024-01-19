@@ -203,7 +203,7 @@ MeshRenderer:
   m_RenderingLayerMask: 4294967295
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -250,8 +250,13 @@ MonoBehaviour:
   _thickness: 0.5
   _needsUpdate: 1
   _points: []
-  StandardMaterial: {fileID: 0}
-  EditMaterial: {fileID: 0}
+  TriggerMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
+  TriggerPreviewMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e,
+    type: 2}
+  StandardMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
+  EditMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
+  _isTriggerOnly: 0
+  _defaultTag: Untagged
 --- !u!60 &60008022801966508
 PolygonCollider2D:
   m_ObjectHideFlags: 0
