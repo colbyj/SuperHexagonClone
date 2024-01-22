@@ -45,7 +45,11 @@ namespace Assets.Scripts.Edit
             _playerSpeedInput.onValueChanged.AddListener(OnPlayerSpeedChanged);
             _createWallButton.onClick.AddListener(OnAddWallClicked);
 
-            PlayerBehavior.OnPlayerDied += (line) => gameObject.SetActive(true);
+            PlayerBehavior.OnPlayerDied += (line) => 
+                gameObject.SetActive(true);
+
+            //ThreatManager.Instance.PatternIsOffScreen += (pi) => 
+            //    gameObject.SetActive(true);
 
             LoadLevelOptions();
             _loadButton.onClick.AddListener(OnLoadClicked);

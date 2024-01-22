@@ -17,6 +17,9 @@ namespace Assets.Scripts.SHPlayer
         public static Action OnInputStart;
         public static Action OnInputEnd;
 
+        /// <summary>
+        /// greater than 0 is clockwise, less than 0 is counter-clockwise.
+        /// </summary>
         public float Input;
 
         private static bool s_isDead;
@@ -45,6 +48,9 @@ namespace Assets.Scripts.SHPlayer
         private PolygonCollider2D _polygonCollider;
         [SerializeField] private CircleCollider2D _leftCircleCollider;
         [SerializeField] private CircleCollider2D _rightCircleCollider;
+
+        public Vector2 BottomPolarCoords => new Vector2(GameParameters.PlayerRadius, CurrentAngle);
+        public Vector2 TopPolarCoords => new Vector2(GameParameters.PlayerRadius + GameParameters.PlayerHeight, CurrentAngle);
 
         private void Awake()
         {
@@ -97,9 +103,10 @@ namespace Assets.Scripts.SHPlayer
             bool leftCollision = _leftCircleCollider.OverlapCollider(contactFilter, leftResults) > 0;
             bool rightCollision = _rightCircleCollider.OverlapCollider(contactFilter, rightResults) > 0;
 
-            if (leftCollision && rightCollision)
+            if (leftCollision && rightCollision && leftResults[0] is PolygonCollider2D)
             {
-                Die();
+                SHLine lineTouched = leftResults[0].gameObject.GetComponent<SHLine>();
+                Die(lineTouched);
                 return;
             }
 
@@ -124,16 +131,13 @@ namespace Assets.Scripts.SHPlayer
             }
         }
 
-        public float GetAngle()
-        {
-            return gameObject.transform.rotation.eulerAngles.z;
-        }
+        public float CurrentAngle => gameObject.transform.rotation.eulerAngles.z;
 
         // Figures out what lanes the player is currently in. Usually one lane, unless player is on the boundary of two lanes.
         public List<GameObject> GetTouchingLanes()
         {
             GameObject[] lanes = GameObject.FindGameObjectsWithTag("Lane");
-            var playerCollider = GetComponent<CircleCollider2D>();
+            var playerCollider = GetComponent<PolygonCollider2D>();
             var currentLanes = new List<GameObject>();
 
             for (int i = 0; i < lanes.Length; i++)
@@ -157,8 +161,7 @@ namespace Assets.Scripts.SHPlayer
             {
                 //Debug.Log($"You are not a super hexagon because you touched {col.gameObject.name} with parent {col.gameObject.transform.parent.name}");
                 SHLine lineTouched = collision.gameObject.GetComponent<SHLine>();
-                OnPlayerDied?.Invoke(lineTouched);
-                Die();
+                Die(lineTouched);
             }
         }
 
@@ -175,8 +178,9 @@ namespace Assets.Scripts.SHPlayer
             }
         }
 
-        public void Die()
+        public void Die(SHLine lineTouched)
         {
+            OnPlayerDied?.Invoke(lineTouched);
             _audioSource.Play();
 
             var exp = FindObjectOfType<Experiment>();

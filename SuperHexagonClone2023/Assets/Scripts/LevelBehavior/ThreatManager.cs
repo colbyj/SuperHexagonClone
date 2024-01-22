@@ -15,7 +15,7 @@ namespace Assets.Scripts.LevelBehavior
 {
     public class ThreatManager : MonoBehaviour
     {
-        private const bool DebuggingEnabled = true;
+        private const bool DebuggingEnabled = false;
         public const int LanesRequired = 6; // TODO
         public const float SpawnPatternsUntilRadius = 100f;
 
@@ -70,7 +70,7 @@ namespace Assets.Scripts.LevelBehavior
                     return _firstPatternRadius;
                 }
 
-                return PatternsOnScreen.Last().FurthestThreat.RadiusOuter() + DifficultyManager.Instance.PatternRadiusOffset;
+                return PatternsOnScreen.Last().FurthestThreat.RadiusOuter + DifficultyManager.Instance.PatternRadiusOffset;
             }
         }
 
@@ -176,7 +176,7 @@ namespace Assets.Scripts.LevelBehavior
                     patternInstanceAtPlayer = patternOnScreen;
                 }
 
-                if (patternInstanceOffScreen == null && patternOnScreen.FurthestThreat.RadiusOuter() <= 0)
+                if (patternInstanceOffScreen == null && patternOnScreen.FurthestThreat.RadiusOuter <= 0)
                 {
                     patternInstanceOffScreen = patternOnScreen;
                 }
@@ -247,6 +247,7 @@ namespace Assets.Scripts.LevelBehavior
             }
 
             patternInstanceFinished.Threats = new List<SHLine>(); // These patterns get reused, so make sure the threat list is ready to go again.
+            patternInstanceFinished.Triggers = new List<SHLine>();
             PatternsOnScreen.Remove(patternInstanceFinished);
         }
 

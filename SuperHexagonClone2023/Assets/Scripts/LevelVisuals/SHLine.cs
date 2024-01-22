@@ -6,6 +6,7 @@ using Assets.Scripts.SHPlayer;
 using CustomExtensions;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Assets.Scripts.Solver;
 
 namespace Assets.Scripts.LevelVisuals
 {
@@ -31,7 +32,7 @@ namespace Assets.Scripts.LevelVisuals
         private PolygonCollider2D _polyCol;
         private Mesh _mesh;
         private MeshFilter _meshFilter;
-        private MeshRenderer _meshRenderer;
+        public MeshRenderer _meshRenderer;
 
         [SerializeField] private bool _needsUpdate = true;
         [SerializeField] private Vector3[] _points;
@@ -108,6 +109,19 @@ namespace Assets.Scripts.LevelVisuals
             }
         }
 
+        public float RadiusOuter => Radius + Thickness;
+
+        /// <summary>
+        /// Is this a line that player could move into?
+        /// </summary>
+        public bool IsBesidePlayer
+        {
+            get
+            {
+                return _radius < GameParameters.PlayerRadius && RadiusOuter > GameParameters.PlayerRadius;
+            }
+        }
+
         public static SHLine SelectedLine
         {
             get => s_selectedLine;
@@ -127,6 +141,20 @@ namespace Assets.Scripts.LevelVisuals
                 _needsUpdate = true;
             }
         }
+
+        public float Angle => gameObject.transform.eulerAngles.z;
+
+        public float ArcLengthDegrees = 360f / LaneManager.LanesRequired;
+
+        /// <summary>
+        /// The "right" side of the line (given that Unity's angles go in a CCW direction)
+        /// </summary>
+        public float AngleStart => (gameObject.transform.eulerAngles.z - (180f / LaneManager.LanesRequired)) % 360;
+        /// <summary>
+        /// The "left" side of the line (given that Unity's angles go in a CCW direction)
+        /// </summary>
+        public float AngleEnd => (gameObject.transform.eulerAngles.z + (180f / LaneManager.LanesRequired)) % 360;
+
 
         private void Awake()
         {
@@ -188,6 +216,11 @@ namespace Assets.Scripts.LevelVisuals
             }
         }
 
+        /// <summary>
+        /// Length of a side of the hexagon (in cartesian coordinates) for a given distance from the centre of the screen (radius).
+        /// </summary>
+        /// <param name="radius"></param>
+        /// <returns></returns>
         private static float ArcLength(float radius)
         {
             // Careful: radius uses same name as class variable.
@@ -208,9 +241,9 @@ namespace Assets.Scripts.LevelVisuals
                 displayRadius = 0f;
             }
 
-            float arcLengthOuter = ArcLength(RadiusOuter());
+            float arcLengthOuter = ArcLength(RadiusOuter);
             float arcLengthInner = ArcLength(displayRadius);
-            float radiusOuter = RadiusOuter();
+            float radiusOuter = RadiusOuter;
 
             if (radiusOuter < 0f)
             {
@@ -235,14 +268,63 @@ namespace Assets.Scripts.LevelVisuals
             }
         }
 
-        public float GetAngle()
-        {
-            return gameObject.transform.eulerAngles.z;
-        }
-
         public bool HasJustPassedRadius(float otherRadius)
         {
             return _lastRadius > otherRadius && _radius < otherRadius;
+        }
+
+        public bool AngleIsWithin(float testAngle)
+        {
+            float angleDelta = Mathf.Abs(Mathf.DeltaAngle(testAngle, Angle));
+            return angleDelta <= ArcLengthDegrees / 2;
+        }
+
+        public Solver.MovementOption ToMoveToThis(float testAngle, float acceptableAngleDelta = 5f)
+        {
+            if (Mathf.Abs(Mathf.DeltaAngle(testAngle, Angle)) <= 5)
+            {
+                return Solver.MovementOption.None;
+            }
+            else if (testAngle > Angle)
+            {
+                return Solver.MovementOption.Clockwise;
+            }
+            else if (testAngle < Angle)
+            {
+                return Solver.MovementOption.CounterClockwise;
+            }
+
+            return Solver.MovementOption.None;
+        }
+
+        /// <summary>
+        /// Work out how far away (from "left" side) a given angle is.
+        /// If the specified angle is within the angles bounded by the line, then returns 0.
+        /// </summary>
+        /// <param name="fromAngle"></param>
+        /// <returns></returns>
+        public float ClockwiseDistance(float fromAngle)
+        {
+            float target = AngleEnd;
+            if (AngleEnd > fromAngle)
+                fromAngle += 360;
+
+            return fromAngle - target;
+        }
+
+        /// <summary>
+        /// Work out how far away (from "right" side) a given angle is.
+        /// If the specified angle is within the angles bounded by the line, then returns 0.
+        /// </summary>
+        /// <param name="fromAngle"></param>
+        /// <returns></returns>
+        public float CounterclockwiseDistance(float fromAngle)
+        {
+            float target = AngleStart;
+            if (target < fromAngle)
+                target += 360;
+
+            return target - fromAngle;
         }
 
         public void OnMouseDown()
@@ -254,11 +336,6 @@ namespace Assets.Scripts.LevelVisuals
                 return;
             
             IsSelected = !IsSelected;
-        }
-
-        public float RadiusOuter()
-        {
-            return Radius + Thickness;
         }
 
         public void ResetLine()

@@ -5,8 +5,5 @@
 <Wall><Distance>9</Distance><Height>3</Height><Side>3</Side><IsTrigger>false</IsTrigger></Wall>
 <Wall><Distance>12</Distance><Height>3</Height><Side>4</Side><IsTrigger>false</IsTrigger></Wall>
 <Wall><Distance>15</Distance><Height>3</Height><Side>5</Side><IsTrigger>false</IsTrigger></Wall>
-<Wall><Distance>15</Distance><Height>3</Height><Side>0</Side><IsTrigger>true</IsTrigger></Wall>
-<Wall><Distance>15</Distance><Height>3</Height><Side>1</Side><IsTrigger>true</IsTrigger></Wall>
-<Wall><Distance>15</Distance><Height>3</Height><Side>2</Side><IsTrigger>true</IsTrigger></Wall>
-<Wall><Distance>15</Distance><Height>3</Height><Side>3</Side><IsTrigger>true</IsTrigger></Wall>
+<Wall><Distance>6</Distance><Height>12</Height><Side>0</Side><IsTrigger>true</IsTrigger></Wall>
 </Pattern>

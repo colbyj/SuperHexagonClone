@@ -59,7 +59,7 @@ public class MovementOption : IComparable<MovementOption>
     // Use MovementPath calculations to estimate whether an obstacle is hit.
     public bool CalculateIsMovementPossible()
     {
-        var playerAngle = SHSBehavior.PlayerPivot.GetComponent<PlayerBehavior>().GetAngle();
+        var playerAngle = PlayerBehavior.Instance.CurrentAngle;
 
         MovementPath lastMovement = null;
         var slices = SlicesToTraverse();

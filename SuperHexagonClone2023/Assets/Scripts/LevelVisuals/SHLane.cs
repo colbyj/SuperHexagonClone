@@ -34,7 +34,7 @@ namespace Assets.Scripts.LevelVisuals
             // Use ToArray to avoid having the collection modifed by the loop errors.
             foreach (SHLine threat in ActiveThreats.ToArray())
             {
-                if (threat.RadiusOuter() <= 0) ThreatPool.Release(threat);
+                if (threat.RadiusOuter <= 0) ThreatPool.Release(threat);
             }
 
             //GameObject nextThreat = threats[0];

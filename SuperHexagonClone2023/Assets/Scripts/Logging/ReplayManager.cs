@@ -11,7 +11,6 @@ using Assets.Scripts.SHPlayer;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.PlayerLoop;
-using Event = UnityEngine.Event;
 
 namespace Assets.Scripts.Logging
 {
@@ -44,6 +43,7 @@ namespace Assets.Scripts.Logging
         public float EventRadius;
         public float PatternOuterRadius;
         public float PatternInnerRadius;
+        public float ThreatAngularPosition;
         
         public ReplayEvent(ReplayEventType type)
         {
@@ -52,7 +52,7 @@ namespace Assets.Scripts.Logging
             TrialNumber = Experiment.Instance.TrialNumber;
             TrialTime = Experiment.Instance.TimerTrial.Value;
             GameTime = Time.time;
-            PlayerRotation = PlayerBehavior.Instance.GetAngle();
+            PlayerRotation = PlayerBehavior.Instance.CurrentAngle;
             RotationInput = PlayerBehavior.Instance.Input;
             CameraRotationSpeed = DifficultyManager.Instance.CameraRotationSpeed;
             ThreatSpeed = DifficultyManager.Instance.ThreatSpeed;
@@ -62,7 +62,7 @@ namespace Assets.Scripts.Logging
         public string ToCsv()
         {
             return $"{Type}|{SessionNumber}|{TrialNumber}|{TrialTime}|{GameTime}|{PlayerRotation}|{RotationInput}|{CameraRotationSpeed}|" +
-                   $"{ThreatSpeed}|{PlayerRotationRate}|{PatternName}|{EventRadius}|{PatternOuterRadius}|{PatternInnerRadius}";
+                   $"{ThreatSpeed}|{PlayerRotationRate}|{PatternName}|{EventRadius}|{PatternOuterRadius}|{PatternInnerRadius}|{ThreatAngularPosition}";
         }
     }
 
@@ -120,7 +120,7 @@ namespace Assets.Scripts.Logging
             ReplayEvent re = new(type);
             re.PatternName = patternInstance.Name;
             re.PatternInnerRadius = patternInstance.ClosestThreat.Radius;
-            re.PatternOuterRadius = patternInstance.FurthestThreat.RadiusOuter();
+            re.PatternOuterRadius = patternInstance.FurthestThreat.RadiusOuter;
             
             _events.Add(re);
         }
@@ -131,7 +131,8 @@ namespace Assets.Scripts.Logging
             re.PatternName = threat.AssociatedPatternInstance.Name;
             re.EventRadius = threat.Radius;
             re.PatternInnerRadius = threat.AssociatedPatternInstance.ClosestThreat.Radius;
-            re.PatternOuterRadius = threat.AssociatedPatternInstance.FurthestThreat.RadiusOuter();
+            re.PatternOuterRadius = threat.AssociatedPatternInstance.FurthestThreat.RadiusOuter;
+            re.ThreatAngularPosition = threat.Angle;
 
             if (_events.Count() > 0)
             {
@@ -171,7 +172,7 @@ namespace Assets.Scripts.Logging
 
                 File.AppendAllText(logFile,
                     "Type|SessionNumber|TrialNumber|TrialTime|GameTime|PlayerRotation|RotationInput|CameraRotationSpeed|"+
-                    "ThreatSpeed|PlayerRotationRate|PatternName|EventRadius|PatternOuterRadius|PatternInnerRadius\n");
+                    "ThreatSpeed|PlayerRotationRate|PatternName|EventRadius|PatternOuterRadius|PatternInnerRadius|ThreatAngularPosition\n");
             }
 
             List<string> lines = new();

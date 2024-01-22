@@ -25,7 +25,7 @@ namespace Assets.Scripts.Edit
         private void PatternIsOffScreen(PatternInstance obj)
         {
             //Debug.Log("PatternPreview.PatternIsOffScreen()");
-            PlayerBehavior.IsDead = true;
+            PlayerBehavior.Instance.Die(obj.FurthestThreat);
             //ThreatManager.Instance.SpawnLevelPattern(new PatternInstance(CurrentPattern));
         }
 

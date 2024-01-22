@@ -7,7 +7,6 @@ using System.Threading;
 using System.Xml;
 using Assets.Scripts.LevelVisuals;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Assets.Scripts.LevelBehavior 
 {
@@ -199,8 +198,9 @@ namespace Assets.Scripts.LevelBehavior
         public List<SHLine> Threats = new List<SHLine>();
         public SHLine ClosestThreat = null;
         public SHLine FurthestThreat = null;
+        public List<SHLine> Triggers = new List<SHLine>();
 
-        public float TotalLength => FurthestThreat.RadiusOuter() - ClosestThreat.Radius;
+        public float TotalLength => FurthestThreat.RadiusOuter - ClosestThreat.Radius;
 
         public PatternInstance(Pattern pattern)
         {
@@ -218,9 +218,14 @@ namespace Assets.Scripts.LevelBehavior
             Mirrored = node.Attributes["mirrored"].Value == "1";
         }
 
+        /// <summary>
+        /// Only needs to be called after the PatternInstance is initialized.
+        /// Assumes that the Wall list in the Pattern object is sorted.
+        /// </summary>
         public void UpdateClosestAndFurthestThreats()
         {
-            SHLine closest = null;
+            // Since writing this code I realized it's more useful to sort the list by radius.
+            /*SHLine closest = null;
             SHLine furthest = null;
 
             foreach (SHLine threat in Threats)
@@ -242,10 +247,52 @@ namespace Assets.Scripts.LevelBehavior
                 {
                     furthest = threat;
                 }
+            }*/
+
+            if (Threats.Count == 0)
+                return;
+
+            ClosestThreat = Threats[0];
+            FurthestThreat = Threats.Last();
+
+            Triggers = new List<SHLine>();
+
+            foreach (SHLine line in Threats)
+            {
+                if (line.IsTriggerOnly)
+                {
+                    Triggers.Add(line);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Work out which triggers come next, after a particular radius.
+        /// </summary>
+        /// <param name="pastThisRadius">If left blank will be the player's radius.</param>
+        /// <returns>If there's a tie, this list contains multiple. Could also be an empty list if the pattern is past the player.</returns>
+        public List<SHLine> NextTriggers(float? pastThisRadius = null)
+        {
+            pastThisRadius ??= GameParameters.PlayerRadius;  // If null, set to player's radius
+
+            var qualifyingTriggers = new List<SHLine>();
+            float closestRadiusFound = float.MaxValue;
+
+            foreach (SHLine line in Triggers)
+            {
+                if (line.Radius >= pastThisRadius && line.Radius < closestRadiusFound)
+                {
+                    // We should only hit this on the first instance in the Triggers list that meets this requirement.
+                    closestRadiusFound = line.Radius; 
+                }
+
+                if (line.Radius == closestRadiusFound)
+                {
+                    qualifyingTriggers.Add(line);
+                }
             }
 
-            ClosestThreat = closest;
-            FurthestThreat = furthest;
+            return qualifyingTriggers;
         }
     }
 
@@ -253,7 +300,7 @@ namespace Assets.Scripts.LevelBehavior
     public class Pattern
     {
         [Serializable]
-        public class Wall
+        public class Wall : IComparable<Wall>
         {
             public int Side;
             /// <summary>
@@ -266,12 +313,17 @@ namespace Assets.Scripts.LevelBehavior
             public float Height;
             public bool IsTrigger;
 
-            public Wall(int side, float distance, float height, bool isTrigger)
+            public Wall(int side, float distance, float height, bool isTrigger) 
             {
                 Side = side;
                 Distance = distance;
                 Height = height;
                 IsTrigger = isTrigger;
+            }
+
+            public int CompareTo(Wall otherWall)
+            {
+                return Distance.CompareTo(otherWall.Distance);
             }
 
             public string ToXmlNodeString()
@@ -336,6 +388,7 @@ namespace Assets.Scripts.LevelBehavior
                 walls.Add(new Wall(side, distance, height, isTrigger));
             }
 
+            walls.Sort();
             Walls = walls;
         }
 

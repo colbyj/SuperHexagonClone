@@ -90,6 +90,7 @@ namespace Assets.Scripts.Edit
             SHLine.SelectedLine.AssociatedPatternInstance.Threats.Remove(SHLine.SelectedLine);
             SHLine.SelectedLine.AssociatedPatternInstance.Pattern.Walls.Remove(SHLine.SelectedLine.AssociatedWall);
             ThreatManager.Instance.RemoveThreat(SHLine.SelectedLine);
+            gameObject.SetActive(false); // Hide this panel to force user to select another line
         }
 
         public Pattern.Wall NewWallFromSettings()

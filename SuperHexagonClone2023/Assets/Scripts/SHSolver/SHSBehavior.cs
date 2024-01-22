@@ -12,8 +12,7 @@ public class SHSBehavior : MonoBehaviour
     }*/
 
     // These static variables are used by LaneThreats and MovementOptions.
-    public static GameObject PlayerPivot;
-    public static GameObject Player;
+    private static PlayerBehavior Player => PlayerBehavior.Instance;
 
     [Header("Preferences")] public float LookAheadRadius = 50f;
 
@@ -38,10 +37,7 @@ public class SHSBehavior : MonoBehaviour
     private void Start()
     {
         Invoke("BeginSolving", 1.0f); // TODO: More robust solution... just wanna get this going asap.
-        PlayerPivot = GameObject.Find("PlayerPivot");
         //playerPivot.GetComponent<PlayerBehavior>().overrideInput = overrideInput;
-
-        Player = GameObject.Find("Player");
     }
 
     private void BeginSolving()
@@ -76,7 +72,7 @@ public class SHSBehavior : MonoBehaviour
                         new LaneThreats.ThreatPosition()
                         {
                             InnerRadius = threatLine.Radius,
-                            OuterRadius = threatLine.RadiusOuter()
+                            OuterRadius = threatLine.RadiusOuter
                         }
                     );
                 }
@@ -223,8 +219,8 @@ public class SHSBehavior : MonoBehaviour
     private void FixedUpdate()
     {
         // Where is the player?
-        _playerAngle = PlayerPivot.GetComponent<PlayerBehavior>().GetAngle();
-        _playerLanes = PlayerPivot.GetComponent<PlayerBehavior>().GetTouchingLanes();
+        _playerAngle = Player.CurrentAngle;
+        _playerLanes = Player.GetTouchingLanes();
 
         // If a response is being carried out, then don't try parsing stimuli or choosing a new response.
         if (GameParameters.OverrideInput)
@@ -239,7 +235,7 @@ public class SHSBehavior : MonoBehaviour
                 ExecutingDecision = false;
             }
 
-            PlayerPivot.GetComponent<PlayerBehavior>().Input = 0; // Reset any movement.
+            Player.Input = 0; // Reset any movement.
         }
 
         if (LaneThreats == null || LaneThreats.Count == 0)
@@ -265,6 +261,6 @@ public class SHSBehavior : MonoBehaviour
         DecidedInput = MovementOptions[0].IsClockwise ? 1 : -1;
         ExecutingDecision = true;
 
-        PlayerPivot.GetComponent<PlayerBehavior>().Input = DecidedInput;
+        Player.Input = DecidedInput;
     }
 }

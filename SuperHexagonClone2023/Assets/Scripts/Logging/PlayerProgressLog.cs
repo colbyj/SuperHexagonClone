@@ -56,7 +56,7 @@ namespace Assets.Scripts.Logging
             { // The user's input has changed!
                 if (_currentAction != null)
                 {
-                    _currentAction.PlayerResponse.EndAngle = _controls.GetAngle();
+                    _currentAction.PlayerResponse.EndAngle = _controls.CurrentAngle;
                     _currentAction.PlayerResponse.EndTime = _experiment.TimerTrial.Value;
 
                     Actions.Add(_currentAction);
@@ -66,7 +66,7 @@ namespace Assets.Scripts.Logging
                 {
                     _currentAction = new ShAction();
                     _currentAction.PlayerResponse.IsClockwise = _controls.Input > 0;
-                    _currentAction.PlayerResponse.StartAngle = _controls.GetAngle();
+                    _currentAction.PlayerResponse.StartAngle = _controls.CurrentAngle;
                     _currentAction.PlayerResponse.StartTime = _experiment.TimerTrial.Value;
                 }
                 _previousInput = _controls.Input;

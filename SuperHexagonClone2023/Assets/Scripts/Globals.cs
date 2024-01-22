@@ -1,9 +1,12 @@
 public static class GameParameters
 {
+    private const bool SolverEnabled = false;
     public const float PlayerRadius = 5f;
-    public const bool OverrideInput = false;
-    public const bool SolverDebuggingOn = false;
-    public const bool EnableCollisions = true;
+    public const float PlayerWidth = 1f;
+    public const float PlayerHeight = 1f;
+    public const bool OverrideInput = SolverEnabled;
+    public const bool SolverDebuggingOn = SolverEnabled;
+    public const bool EnableCollisions = !SolverEnabled;
 }
 
 public static class DefaultDifficulty

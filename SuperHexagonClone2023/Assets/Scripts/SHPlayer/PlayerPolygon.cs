@@ -13,12 +13,12 @@ namespace Assets.Scripts.SHPlayer
         {
             Points = new[]
             {
-                new Vector2(0f, 1f),
-                new Vector2(-0.7f, 0f),
-                new Vector2(0.7f, 1f),
+                new Vector2(0f, GameParameters.PlayerHeight),
+                new Vector2(-GameParameters.PlayerWidth/2, 0f),
+                new Vector2(GameParameters.PlayerWidth/2, 0f),
             };
 
-            Points[0].y = 1.2f + GameParameters.PlayerRadius;
+            Points[0].y = GameParameters.PlayerHeight + GameParameters.PlayerRadius;
             Points[1].y = GameParameters.PlayerRadius;
             Points[2].y = GameParameters.PlayerRadius;
 
