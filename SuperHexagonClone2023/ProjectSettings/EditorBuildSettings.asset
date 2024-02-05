@@ -8,9 +8,12 @@ EditorBuildSettings:
   - enabled: 0
     path: Assets/Scenes/Pre-game.unity
     guid: d0557e0f3b4f93840a401de829d3c09a
+  - enabled: 0
+    path: Assets/Scenes/SolverTester.unity
+    guid: 213c239cae6c1974c8a0d36837b1bb1a
   - enabled: 1
     path: Assets/Scenes/SHExperiment.unity
-    guid: 213c239cae6c1974c8a0d36837b1bb1a
+    guid: 1c713c6424965764ca4accfa0340705d
   - enabled: 1
     path: Assets/Scenes/ThankYou.unity
     guid: 362ed0bb0f55b4b46857776a9bec64d0

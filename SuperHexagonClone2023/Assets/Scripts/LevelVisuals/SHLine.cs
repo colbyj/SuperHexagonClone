@@ -273,6 +273,11 @@ namespace Assets.Scripts.LevelVisuals
             return _lastRadius > otherRadius && _radius < otherRadius;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="testAngle"></param>
+        /// <returns></returns>
         public bool AngleIsWithin(float testAngle)
         {
             float angleDelta = Mathf.Abs(Mathf.DeltaAngle(testAngle, Angle));

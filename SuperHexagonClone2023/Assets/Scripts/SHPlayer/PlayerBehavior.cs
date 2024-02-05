@@ -42,6 +42,7 @@ namespace Assets.Scripts.SHPlayer
         }
 
         private bool _isMoving;
+        private GameObject _lastTriggerTouched = null;
 
         private AudioSource _audioSource;
         private Rigidbody2D _rb;
@@ -165,14 +166,17 @@ namespace Assets.Scripts.SHPlayer
             }
         }
 
+
+
         private void OnTriggerExit2D(Collider2D collision)
         {
             if (!GameParameters.EnableCollisions)
                 return;
 
-            // Player went past a checkpoint trigger.
-            if (collision.gameObject.tag == "Trigger" && collision is PolygonCollider2D)
+            // Player went past a checkpoint trigger, and that the trigger wasn't the same as what they just touched.
+            if (collision.gameObject.tag == "Trigger" && collision is PolygonCollider2D && _lastTriggerTouched != collision.gameObject)
             {
+                _lastTriggerTouched = collision.gameObject;
                 SHLine lineTouched = collision.gameObject.GetComponent<SHLine>();
                 OnCheckpointTrigger?.Invoke(lineTouched);
             }

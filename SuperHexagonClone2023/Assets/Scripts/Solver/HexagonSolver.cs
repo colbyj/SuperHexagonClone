@@ -10,6 +10,11 @@ using UnityEngine;
 
 namespace Assets.Scripts.Solver
 {
+    public enum SolverState
+    {
+        WaitingForThreats, Solving, WaitingToMove, Moving, Solved
+    }
+
     public enum MovementOption
     {
         None, Clockwise, CounterClockwise
@@ -17,6 +22,8 @@ namespace Assets.Scripts.Solver
 
     public class HexagonSolver : MonoBehaviour
     {
+        public static HexagonSolver Instance;
+
         private const float IgnoreThreatsPastRadius = 60f;
         public List<SHLine> NextTriggers;
         public List<SHLine> ThreatsAlignedWithPlayer;
@@ -27,21 +34,27 @@ namespace Assets.Scripts.Solver
         public float ClosestCcwTriggerAngle;
         public bool CanMoveCw;
         public bool CanMoveCcw;
-        public bool NeedToMove = false;
+
+        public bool NeedToMakeDecision;
+
+        public SolverState State = SolverState.WaitingForThreats;
         public MovementOption BestMovementOption = MovementOption.None;
         public List<MovementOption> ValidMovementOptions = new List<MovementOption>();
 
+        public static Action<PatternInstance> OnNextTriggersChanged;
+
         private void Awake()
         {
-            
+            Instance = this;
+            //Time.timeScale = 0.5f; // Slow down the simulation for testing
         }
 
         private void Update()
         {
-            
+            //if (State == SolverState.WaitingForThreats)
             UpdateMovementOptions();
 
-            if (BestMovementOption == MovementOption.CounterClockwise)
+            /*if (BestMovementOption == MovementOption.CounterClockwise)
             {
                 PlayerBehavior.Instance.Input = -1;
             }
@@ -52,22 +65,38 @@ namespace Assets.Scripts.Solver
             else
             {
                 PlayerBehavior.Instance.Input = 0;
-            }
+            }*/
         }
 
         private void OnGUI()
         {
 
-            if (BestMovementOption == MovementOption.CounterClockwise)
+            /*if (BestMovementOption == MovementOption.CounterClockwise)
             {
                 GUI.Box(new Rect(0, 0, 100, Screen.height), $"LEFT!");
             }
             else if (BestMovementOption == MovementOption.Clockwise)
             {
                 GUI.Box(new Rect(Screen.width-100, 0, 100, Screen.height), $"RIGHT!");
+            }*/
+            
+            
+        }
+
+        private bool AreTriggerListsEqual(List<SHLine> l1, List<SHLine> l2)
+        {
+            if (l1.Count != l2.Count) return false;
+
+            
+            for (int i = 0; i < l1.Count; i++)
+            {
+                if (l1[i] != l2[i])
+                {
+                    return false;
+                }
             }
-            
-            
+
+            return true;
         }
 
         private void UpdateMovementOptions()
@@ -78,21 +107,46 @@ namespace Assets.Scripts.Solver
                 return;  // No threat; nothing to solve!
             }
 
-            if (ThreatManager.Instance.PatternsOnScreen[0].ClosestThreat.Radius > IgnoreThreatsPastRadius)
+            PatternInstance pi = ThreatManager.Instance.PatternsOnScreen[0];
+
+            if (pi.ClosestThreat.Radius > IgnoreThreatsPastRadius)
             {
                 BestMovementOption = MovementOption.None;
                 return;  // Too far away to see right now.
             }
 
             // TODO: Don't calculate this every frame; it is wasteful.
-            NextTriggers = ThreatManager.Instance.PatternsOnScreen[0].NextTriggers();
+            // Work out which safe lane(s) are next.
+            List<SHLine> nextTriggers = pi.NextTriggers();
+
+            bool triggersChanged = false;
+
+            if (!AreTriggerListsEqual(NextTriggers, nextTriggers))
+            {
+                NeedToMakeDecision = true;
+                NextTriggers = nextTriggers;
+
+                triggersChanged = true;
+            }
+
+            if (!NeedToMakeDecision) // Already made a decision about what to do, just need to carry out that decision.
+                return;
 
             UpdateClosestTriggers();
             UpdateTriggerAlignedWithPlayer();
 
             if (TriggerAlignedWithPlayer != null)
             {
-                BestMovementOption = TriggerAlignedWithPlayer.ToMoveToThis(PlayerBehavior.Instance.CurrentAngle);
+                // This is intended to get players to move toward the centre of the trigger
+                //BestMovementOption = TriggerAlignedWithPlayer.ToMoveToThis(PlayerBehavior.Instance.CurrentAngle);
+                BestMovementOption = MovementOption.None;
+                
+                if (triggersChanged)
+                {
+                    Debug.Log("Triggers changed.");
+                    OnNextTriggersChanged?.Invoke(pi);
+                }
+
                 return; // The player is already where they need to be, stop checking anything else.
             }
             else
@@ -109,12 +163,22 @@ namespace Assets.Scripts.Solver
             {
                 BestMovementOption = MovementOption.Clockwise;
             }
+
+            if (triggersChanged)
+            {
+                Debug.Log("Triggers changed.");
+                OnNextTriggersChanged?.Invoke(pi);
+            }
+            //NeedToMakeDecision = false;
         }
 
+        /// <summary>
+        /// Work out which of the next trigger(s) are the closest to the player. 
+        /// </summary>
         private void UpdateClosestTriggers()
         {
-            float smallestCwAngle = float.MaxValue;
-            float smallestCcwAngle = float.MaxValue;
+            float smallestCwAngle = 360;
+            float smallestCcwAngle = 360;
 
             foreach (SHLine trigger in NextTriggers)
             {
@@ -162,11 +226,14 @@ namespace Assets.Scripts.Solver
             ClosestCcwTriggerAngle = smallestCcwAngle;
         }
 
+        /// <summary>
+        /// Work out if one the triggers is aligned with the player and update "TriggerAlignedWithPlayer"
+        /// </summary>
         private void UpdateTriggerAlignedWithPlayer()
         {
             if (ClosestCwTrigger != ClosestCcwTrigger)
             {
-                TriggerAlignedWithPlayer = null;
+                TriggerAlignedWithPlayer = null;  // The two triggers aren't the same.
                 return;
             }
 

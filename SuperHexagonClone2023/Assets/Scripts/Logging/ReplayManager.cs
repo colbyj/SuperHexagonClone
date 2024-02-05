@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Assets.Scripts.LevelBehavior;
 using Assets.Scripts.LevelVisuals;
 using Assets.Scripts.SHPlayer;
+using Assets.Scripts.Solver;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.PlayerLoop;
@@ -24,6 +27,7 @@ namespace Assets.Scripts.Logging
         PatternIsOffScreen,
         MoveStart,
         MoveEnd,
+        SolverTriggersChanged
     }
 
     [Serializable]
@@ -44,7 +48,14 @@ namespace Assets.Scripts.Logging
         public float PatternOuterRadius;
         public float PatternInnerRadius;
         public float ThreatAngularPosition;
-        
+        public List<float> NextTriggerAngles;
+        public bool CanMoveCw;
+        public bool CanMoveCcw;
+        public bool IsTriggerAlignedWithPlayer;
+        public float ClosestCwTriggerAngle;
+        public float ClosestCcwTriggerAngle;
+        public Solver.MovementOption BestMovementOption = Solver.MovementOption.None;
+
         public ReplayEvent(ReplayEventType type)
         {
             Type = type;
@@ -57,12 +68,62 @@ namespace Assets.Scripts.Logging
             CameraRotationSpeed = DifficultyManager.Instance.CameraRotationSpeed;
             ThreatSpeed = DifficultyManager.Instance.ThreatSpeed;
             PlayerRotationRate = DifficultyManager.Instance.PlayerRotationRate;
+
+            if (ThreatManager.Instance.PatternsOnScreen.Count > 0)
+            {
+                PatternInstance pi = ThreatManager.Instance.PatternsOnScreen[0];
+                PatternName = pi.Name;
+                PatternInnerRadius = pi.ClosestThreat.Radius;
+                PatternOuterRadius = pi.FurthestThreat.RadiusOuter;
+            }
+
+            if (HexagonSolver.Instance != null)
+            {
+                NextTriggerAngles = new List<float>(HexagonSolver.Instance.NextTriggers.Count);
+
+                foreach (SHLine trigger in HexagonSolver.Instance.NextTriggers)
+                {
+                    NextTriggerAngles.Add(trigger.Angle);
+                }
+                CanMoveCw = HexagonSolver.Instance.CanMoveCw;
+                CanMoveCcw = HexagonSolver.Instance.CanMoveCcw;
+                IsTriggerAlignedWithPlayer = HexagonSolver.Instance.TriggerAlignedWithPlayer != null;
+                ClosestCwTriggerAngle = HexagonSolver.Instance.ClosestCwTriggerAngle;
+                ClosestCcwTriggerAngle = HexagonSolver.Instance.ClosestCcwTriggerAngle;
+                BestMovementOption = HexagonSolver.Instance.BestMovementOption;
+            }
         }
         
         public string ToCsv()
         {
-            return $"{Type}|{SessionNumber}|{TrialNumber}|{TrialTime}|{GameTime}|{PlayerRotation}|{RotationInput}|{CameraRotationSpeed}|" +
-                   $"{ThreatSpeed}|{PlayerRotationRate}|{PatternName}|{EventRadius}|{PatternOuterRadius}|{PatternInnerRadius}|{ThreatAngularPosition}";
+            string nextTriggerAngles = string.Join(';', NextTriggerAngles);
+
+            return Type + "|" +
+                   SessionNumber + "|" +
+                   TrialNumber + "|" +
+                   TrialTime.ToString("#.0000") + "|" +
+                   GameTime.ToString("#.0000") + "|" +
+                   PlayerRotation.ToString("#.0000") + "|" +
+                   RotationInput.ToString("#.0000") + "|" +
+                   CameraRotationSpeed.ToString("#.0000") + "|" +
+                   ThreatSpeed.ToString("#.0000") + "|" +
+                   PlayerRotationRate.ToString("#.0000") + "|" +
+                   PatternName + "|" +
+                   EventRadius.ToString("#.0000") + "|" +
+                   PatternOuterRadius.ToString("#.0000") + "|" +
+                   PatternInnerRadius.ToString("#.0000") + "|" +
+                   ThreatAngularPosition.ToString("#.0000") + "|" +
+                   nextTriggerAngles + "|" +
+                   CanMoveCw + "|" +
+                   CanMoveCcw + "|" +
+                   IsTriggerAlignedWithPlayer + "|" +
+                   ClosestCwTriggerAngle.ToString("#.0000") + "|" +
+                   ClosestCcwTriggerAngle.ToString("#.0000") + "|" +
+                   BestMovementOption;
+
+            //return $"{Type}|{SessionNumber}|{TrialNumber}|{TrialTime}|{GameTime}|{PlayerRotation}|{RotationInput}|{CameraRotationSpeed}|" +
+            //       $"{ThreatSpeed}|{PlayerRotationRate}|{PatternName}|{EventRadius}|{PatternOuterRadius}|{PatternInnerRadius}|{ThreatAngularPosition}|" +
+            //       $"{nextTriggerAngles}|{CanMoveCw}|{CanMoveCcw}|{IsTriggerAlignedWithPlayer}|{ClosestCwTriggerAngle}|{ClosestCcwTriggerAngle}|{BestMovementOption}";
         }
     }
 
@@ -106,6 +167,9 @@ namespace Assets.Scripts.Logging
 
             PlayerBehavior.OnInputStart += () => AddBasicLog(ReplayEventType.MoveStart);
             PlayerBehavior.OnInputEnd += () => AddBasicLog(ReplayEventType.MoveEnd);
+
+            HexagonSolver.OnNextTriggersChanged += (pi) =>
+                AddPatternInstanceLog(pi, ReplayEventType.SolverTriggersChanged);
 
             //PlayerBehavior.OnInputStart += 
         }

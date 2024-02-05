@@ -65,55 +65,66 @@ namespace Assets.Scripts.LevelBehavior
 
     public class LevelSpawnOneCommand : LevelCommand
     {
-        public List<PatternInstance> ToSpawn;
+        private readonly List<XmlNode> _toSpawn;
+
         public PatternInstance GetRandomToSpawn
         {
             get
             {
-                int randomIdx = UnityEngine.Random.Range(0, ToSpawn.Count());
-                return ToSpawn[randomIdx];
+                int randomIdx = UnityEngine.Random.Range(0, _toSpawn.Count());
+                return new PatternInstance(_toSpawn[randomIdx]);
             }
         }
 
         public LevelSpawnOneCommand(XmlNodeList patternNodes)
         {
             CommandType = LevelCommandType.SpawnOne;
-            ToSpawn = new List<PatternInstance>();
+            _toSpawn = new List<XmlNode>();
 
             foreach (XmlNode patternNode in patternNodes)
             {
-                ToSpawn.Add(new PatternInstance(patternNode));
+                _toSpawn.Add(patternNode);
             }
         }
     }
 
     public class LevelSpawnGroupCommand : LevelCommand
     {
-        public List<List<PatternInstance>> GroupsToSpawn;
+        private List<List<XmlNode>> _groupsToSpawn;
+
         public List<PatternInstance> GetRandomGroupToSpawn
         {
             get
             {
-                int randomIdx = UnityEngine.Random.Range(0, GroupsToSpawn.Count());
+                int randomIdx = UnityEngine.Random.Range(0, _groupsToSpawn.Count());
                 Debug.Log(randomIdx);
-                return GroupsToSpawn[randomIdx];
+
+                List<PatternInstance> group = new List<PatternInstance>();
+
+                foreach (XmlNode node in _groupsToSpawn[randomIdx])
+                {
+                    group.Add(new PatternInstance(node));
+                }
+
+                return group;
             }
         }
 
         public LevelSpawnGroupCommand(XmlNodeList patternGroupNodes)
         {
             CommandType = LevelCommandType.SpawnGroup;
-            GroupsToSpawn = new List<List<PatternInstance>>();
+            _groupsToSpawn = new List<List<XmlNode>>();
 
             foreach (XmlNode patternGroupNode in patternGroupNodes)
             {
-                List<PatternInstance> group = new List<PatternInstance>();
+                List<XmlNode> group = new List<XmlNode>();
 
                 foreach (XmlNode patternNode in patternGroupNode.ChildNodes)
                 {
-                    group.Add(new PatternInstance(patternNode));
+                    group.Add(patternNode);
                 }
-                GroupsToSpawn.Add(group);
+
+                _groupsToSpawn.Add(group);
             }
         }
     }

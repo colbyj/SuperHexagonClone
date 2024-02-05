@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Assets.Scripts.LevelBehavior;
 using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
@@ -18,8 +19,9 @@ public class Music : MonoBehaviour
         Experiment.OnSessionEnd += () =>
         {
             audioSource.Stop();
+            paused = false;
         };
-            
+
         LevelManager.OnFirstBegin += () =>
         {
             if (!paused)
@@ -32,15 +34,39 @@ public class Music : MonoBehaviour
         {
             if (paused)
             {
-                audioSource.UnPause();
+                if (Application.platform == RuntimePlatform.WebGLPlayer)
+                {
+                    audioSource.volume = 1;
+                }
+                else
+                {
+                    audioSource.UnPause();
+                }
+
                 paused = false;
+                //Debug.Log($"Unpaused and time is {audioSource.time}");
+
+
+            }
+            else
+            {
+                Debug.Log("Play music OnPlayerRespawn");
+                audioSource.Play();
             }
         };
 
         PlayerBehavior.OnPlayerDied += (line) =>
         {
             paused = true;
-            audioSource.Pause();
+            //Debug.Log($"Paused and time is {audioSource.time}");
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+            {
+                audioSource.volume = 0;
+            }
+            else
+            {
+                audioSource.Pause();
+            }
         };
     }
 
