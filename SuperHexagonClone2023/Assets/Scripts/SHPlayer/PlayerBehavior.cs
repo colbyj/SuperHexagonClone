@@ -171,7 +171,7 @@ namespace Assets.Scripts.SHPlayer
             return currentLanes;
         }
 
-        private void OnTriggerStay2D(Collider2D collision)
+        private void OnTriggerEnter2D(Collider2D collision)
         {
             if (!GameParameters.EnableCollisions)
                 return;
@@ -253,6 +253,8 @@ namespace Assets.Scripts.SHPlayer
 
         public void Die(SHLine lineTouched)
         {
+            Debug.Log("Player has died!");
+            
             OnPlayerDied?.Invoke(lineTouched);
             _audioSource.Play();
 

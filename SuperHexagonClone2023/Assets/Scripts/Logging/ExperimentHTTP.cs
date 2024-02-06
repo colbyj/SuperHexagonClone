@@ -130,6 +130,13 @@ namespace Assets.Scripts.Logging
             if (request.result != UnityWebRequest.Result.Success)
             {
                 Debug.Log(request.error);
+
+                // If error, attempt to do what desktop does
+                string sessionJson = File.ReadAllText($"{Path.Combine(Application.streamingAssetsPath, "settings.json")}");
+
+                var settings = JsonUtility.FromJson<ExperimentSettings>(sessionJson);
+                CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
+                Sessions = settings.Sessions;
             }
             else
             {
@@ -144,6 +151,7 @@ namespace Assets.Scripts.Logging
                     Debug.Log(response);
 
                     var settings = JsonUtility.FromJson<ExperimentSettings>(response);
+                    CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
                     Sessions = settings.Sessions;
                 }
             }
