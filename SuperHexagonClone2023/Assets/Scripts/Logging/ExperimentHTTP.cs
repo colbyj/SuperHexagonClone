@@ -24,10 +24,11 @@ namespace Assets.Scripts.Logging
             public float MaxDuration;
         }
 
-        private class SessionList
+        private class ExperimentSettings
         { 
             // Workaround for Unity's built-in JSON Serialization tools.
             public List<SessionParameters> Sessions;
+            public string FeedbackType;
         }
 #pragma warning restore 0649
 
@@ -141,7 +142,9 @@ namespace Assets.Scripts.Logging
                 else
                 {
                     Debug.Log(response);
-                    Sessions = JsonUtility.FromJson<SessionList>(response).Sessions;
+
+                    var settings = JsonUtility.FromJson<ExperimentSettings>(response);
+                    Sessions = settings.Sessions;
                 }
             }
             request.Dispose();
@@ -149,7 +152,11 @@ namespace Assets.Scripts.Logging
             doAfter();
 #elif UNITY_STANDALONE
             string sessionJson = File.ReadAllText($"{Path.Combine(Application.streamingAssetsPath, "settings.json")}");
-            Sessions = JsonUtility.FromJson<SessionList>(sessionJson).Sessions;
+            
+            var settings = JsonUtility.FromJson<ExperimentSettings>(sessionJson);
+            CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
+            Sessions = settings.Sessions;
+
             doAfter();
             yield return null;
 #endif

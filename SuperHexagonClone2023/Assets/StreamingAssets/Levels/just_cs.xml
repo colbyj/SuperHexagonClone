@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Commands>
+  <RotationDifficultyMax>15</RotationDifficultyMax>
+  <RotationDifficulty>15</RotationDifficulty>
+  <RotationDifficultyRate>0</RotationDifficultyRate>
+  <ThreatSpeedMax>12.5</ThreatSpeedMax>
+  <ThreatSpeed>12.5</ThreatSpeed>
+  <ThreatSpeedRate>0</ThreatSpeedRate>
+  <PlayerSpeed>300</PlayerSpeed>
+  <PatternRadiusOffset>15</PatternRadiusOffset>
+  <CWCamera />
+  <RepeatFromHere />
+  <SpawnOne>
+    <Pattern offset="0" rotate="0" mirrored="0">hex_multi_c_x7_15u</Pattern>
+  </SpawnOne>
+</Commands>

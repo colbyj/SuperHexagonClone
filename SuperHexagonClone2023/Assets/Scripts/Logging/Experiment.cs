@@ -11,6 +11,13 @@ namespace Assets.Scripts.Logging
 {
     public partial class Experiment : MonoBehaviour
     {
+        public enum FeedbackMode
+        {
+            Default,
+            None,
+            Meaningless,
+            Meaningful
+        }
 
         public delegate void TimerDelegate();
 
@@ -134,6 +141,8 @@ namespace Assets.Scripts.Logging
         public ShGameState State;
         public bool PlaySoundOnSessionStart = true;
 
+        public FeedbackMode CurrentFeedbackMode = FeedbackMode.Default;
+
         private int _trialFrames = 0;
         private bool _newHighScore = false;
 
@@ -190,10 +199,31 @@ namespace Assets.Scripts.Logging
 
         private TrialLogging _trialLogging = new();
 
+        [SerializeField] private GameObject _explosion;
+        [SerializeField] private GameObject _deathCanvas;
+
         private void Awake()
         {
             Instance = this;
             Application.targetFrameRate = 120;
+
+            PlayerBehavior.OnPlayerDied += (line) =>
+            {
+                if (CurrentFeedbackMode == FeedbackMode.Meaningless)
+                {
+                    _deathCanvas.SetActive(true);
+                    _explosion.SetActive(true);
+                }
+            };
+
+            PlayerBehavior.OnPlayerRespawn += () =>
+            {
+                if (CurrentFeedbackMode == FeedbackMode.Meaningless)
+                {
+                    _deathCanvas.SetActive(false);
+                    _explosion.SetActive(false);
+                }
+            };
         }
 
         // Use this for initialization

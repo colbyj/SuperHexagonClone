@@ -47,11 +47,19 @@ namespace Assets.Scripts.SHPlayer
         private AudioSource _audioSource;
         private Rigidbody2D _rb;
         private PolygonCollider2D _polygonCollider;
-        [SerializeField] private CircleCollider2D _leftCircleCollider;
-        [SerializeField] private CircleCollider2D _rightCircleCollider;
+        [SerializeField] private PolygonCollider2D _leftCollider; 
+        [SerializeField] private PolygonCollider2D _rightCollider;
+        [SerializeField] private PolygonCollider2D _forwardCollider;
+
+        [SerializeField] private GameObject _leftFeedback;
+        [SerializeField] private GameObject _rightFeedback;
+        [SerializeField] private GameObject _forwardFeedback;
+
+        private ContactFilter2D _contactFilter;
 
         public Vector2 BottomPolarCoords => new Vector2(GameParameters.PlayerRadius, CurrentAngle);
         public Vector2 TopPolarCoords => new Vector2(GameParameters.PlayerRadius + GameParameters.PlayerHeight, CurrentAngle);
+
 
         private void Awake()
         {
@@ -60,6 +68,20 @@ namespace Assets.Scripts.SHPlayer
             _audioSource = GetComponent<AudioSource>();
             _rb = GetComponent<Rigidbody2D>();
             _polygonCollider = GetComponent<PolygonCollider2D>();
+
+            OnPlayerRespawn += () =>
+            {
+                _leftFeedback.SetActive(false);
+                _rightFeedback.SetActive(false);
+                _forwardFeedback.SetActive(false);
+            };
+
+            _contactFilter = new ContactFilter2D
+            {
+                layerMask = 8, // Check for threats only
+                //useLayerMask = true,
+                //useTriggers = true,
+            };
         }
 
         private void Update()
@@ -94,17 +116,13 @@ namespace Assets.Scripts.SHPlayer
             float rotation = 0;
             bool allowRotation = false;
 
-            var contactFilter = new ContactFilter2D
-            {
-                layerMask = 8 // Check for threats only
-            };
             var leftResults = new List<Collider2D>();
             var rightResults = new List<Collider2D>();
 
-            bool leftCollision = _leftCircleCollider.OverlapCollider(contactFilter, leftResults) > 0;
-            bool rightCollision = _rightCircleCollider.OverlapCollider(contactFilter, rightResults) > 0;
+            bool leftCollision = _leftCollider.OverlapCollider(_contactFilter, leftResults) > 0;
+            bool rightCollision = _rightCollider.OverlapCollider(_contactFilter, rightResults) > 0;
 
-            if (leftCollision && rightCollision && leftResults[0] is PolygonCollider2D)
+            if (leftCollision && rightCollision && leftResults[0].tag == "Threat" && rightResults[0].tag == "Threat")
             {
                 SHLine lineTouched = leftResults[0].gameObject.GetComponent<SHLine>();
                 Die(lineTouched);
@@ -153,13 +171,64 @@ namespace Assets.Scripts.SHPlayer
             return currentLanes;
         }
 
-        private void OnTriggerEnter2D(Collider2D collision)
+        private void OnTriggerStay2D(Collider2D collision)
         {
             if (!GameParameters.EnableCollisions)
                 return;
 
             if (collision.gameObject.tag == "Threat" && collision is EdgeCollider2D)
             {
+                // If extra feedback is turned on, work out where to show the feedback.
+                if (Experiment.Instance.CurrentFeedbackMode == Experiment.FeedbackMode.Meaningful)
+                {
+                    var leftDistance = _leftCollider.Distance(collision);
+                    var rightDistance = _rightCollider.Distance(collision);
+                    var forwardDistance = _forwardCollider.Distance(collision);
+
+                    if (forwardDistance.isOverlapped)
+                    {
+                        _forwardFeedback.SetActive(true);
+                    }
+                    else if (leftDistance.isOverlapped)
+                    {
+                        _leftFeedback.SetActive(true);
+                    }
+                    else if (rightDistance.isOverlapped)
+                    {
+                        _rightFeedback.SetActive(true);
+                    }
+                    else
+                    {
+                        _forwardFeedback.SetActive(true);
+                    }
+
+                    /*var leftResults = new List<Collider2D>();
+                    var rightResults = new List<Collider2D>();
+                    var forwardResults = new List<Collider2D>();
+
+
+
+                    bool leftCollision = _leftCollider.OverlapCollider(_contactFilter, leftResults) > 0;
+                    bool rightCollision = _rightCollider.OverlapCollider(_contactFilter, rightResults) > 0;
+                    bool forwardCollision = _forwardCollider.OverlapCollider(_contactFilter, forwardResults) > 0;
+                    */
+                    /*
+                    if (forwardCollision)
+                    {
+                        _forwardFeedback.SetActive(true);
+                    }
+
+                    if (rightCollision)
+                    {
+                        _rightFeedback.SetActive(true);
+                    }
+
+                    if (leftCollision)
+                    {
+                        _leftFeedback.SetActive(true);
+                    }*/
+                }
+
                 //Debug.Log($"You are not a super hexagon because you touched {col.gameObject.name} with parent {col.gameObject.transform.parent.name}");
                 SHLine lineTouched = collision.gameObject.GetComponent<SHLine>();
                 Die(lineTouched);

@@ -72,11 +72,21 @@ namespace Assets.Scripts.LevelBehavior
         private void OnPlayerDied()
         {
             _levelIsActive = false;
+
+            if (Experiment.Instance?.CurrentFeedbackMode == Experiment.FeedbackMode.Meaningless ||
+                Experiment.Instance?.CurrentFeedbackMode == Experiment.FeedbackMode.None)
+            {
+                ThreatManager.Instance.Clear();
+            }
         }
 
         private void OnPlayerRespawn()
         {
-            ThreatManager.Instance.Clear();
+            if (Experiment.Instance?.CurrentFeedbackMode != Experiment.FeedbackMode.Meaningless &&
+                Experiment.Instance?.CurrentFeedbackMode != Experiment.FeedbackMode.None)
+            {
+                ThreatManager.Instance.Clear();
+            }
         }
 
         private IEnumerator FirstBeginLevel()
