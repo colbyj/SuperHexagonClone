@@ -11,9 +11,12 @@ namespace Assets.Scripts.SHPlayer
     {
         public static PlayerBehavior Instance;
 
+        /// <summary>
+        /// Do not use this for actual core gameplay! It seems to sometimes function weird.
+        /// </summary>
         public static Action<SHLine> OnPlayerDied;
         public static Action<SHLine> OnCheckpointTrigger;
-        public static Action OnPlayerRespawn;
+        //public static Action OnPlayerRespawn;
         public static Action OnInputStart;
         public static Action OnInputEnd;
 
@@ -25,7 +28,7 @@ namespace Assets.Scripts.SHPlayer
         private static bool s_isDead;
         public static bool IsDead
         {
-            set
+            private set
             {
                 if (value == s_isDead)
                     return;
@@ -34,8 +37,15 @@ namespace Assets.Scripts.SHPlayer
 
                 if (!s_isDead)
                 {
-                    OnPlayerRespawn?.Invoke();
+                    Instance._leftFeedback.SetActive(false);
+                    Instance._rightFeedback.SetActive(false);
+                    Instance._forwardFeedback.SetActive(false);
+
+                    //OnPlayerRespawn?.Invoke();
                     //Debug.Log("Player respawned!");
+                    LevelManager.Instance.OnPlayerRespawn();
+                    Experiment.Instance?.OnPlayerRespawn();
+                    Music.Instance?.OnPlayerRespawn();
                 }
             }
             get => s_isDead;
@@ -68,13 +78,6 @@ namespace Assets.Scripts.SHPlayer
             _audioSource = GetComponent<AudioSource>();
             _rb = GetComponent<Rigidbody2D>();
             _polygonCollider = GetComponent<PolygonCollider2D>();
-
-            OnPlayerRespawn += () =>
-            {
-                _leftFeedback.SetActive(false);
-                _rightFeedback.SetActive(false);
-                _forwardFeedback.SetActive(false);
-            };
 
             _contactFilter = new ContactFilter2D
             {
@@ -176,7 +179,7 @@ namespace Assets.Scripts.SHPlayer
             if (!GameParameters.EnableCollisions)
                 return;
 
-            if (collision.gameObject.tag == "Threat" && collision is EdgeCollider2D)
+            if (!IsDead && collision.gameObject.tag == "Threat" && collision is EdgeCollider2D)
             {
                 // If extra feedback is turned on, work out where to show the feedback.
                 if (Experiment.Instance.CurrentFeedbackMode == Experiment.FeedbackMode.Meaningful)
@@ -251,22 +254,44 @@ namespace Assets.Scripts.SHPlayer
             }
         }
 
+        /// <summary>
+        /// The experiment, or level or level editor can force the player to die to prevent the level from playing
+        /// </summary>
+        public void ForceDeath()
+        {
+            IsDead = true;
+            DifficultyManager.Instance.ResetDifficulty();
+        }
+
+        /// <summary>
+        /// The level or level editor can force the player to respawn
+        /// </summary>
+        public void ForceRespawn()
+        {
+            IsDead = false;
+        }
+
         public void Die(SHLine lineTouched)
         {
-            Debug.Log("Player has died!");
-            
+            //Debug.Log("Player has died!");
+
             OnPlayerDied?.Invoke(lineTouched);
+            LevelManager.Instance.OnPlayerDied();
+            Experiment.Instance?.OnPlayerDied();
+            Music.Instance?.OnPlayerDied();
+
             _audioSource.Play();
 
             var exp = FindObjectOfType<Experiment>();
 
             if (exp)
             {
-                exp.EndTrial();
+                exp.EndTrial();  // The experiment sets IsDead to Ture
             }
-            DifficultyManager.Instance.ResetDifficulty();
-
-            IsDead = true;
+            else
+            {
+                ForceDeath();
+            }
         }
     }
 }

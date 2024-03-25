@@ -65,6 +65,7 @@ namespace Assets.Scripts.Logging
 
         public void SaveTrial(int trialFrames, Experiment experiment, bool interrupted = false)
         {
+            Debug.Log("SaveTrial");
             float framerate = trialFrames / experiment.TimerTrial.Value;
 
             if (float.IsNaN(framerate))
@@ -77,6 +78,7 @@ namespace Assets.Scripts.Logging
             string difficultyRotation = DifficultyManager.Instance.CameraRotationSpeed.ToString("#.00000");
             string difficultySpawning = DifficultyManager.Instance.ThreatSpeed.ToString("#.00000");
             string interruptedStr = interrupted ? "true" : "false";
+            string keyPressCount = experiment.movementKeysPressedThisTrial.ToString();
             string movements = StringCompressor.CompressString(MovementsCsv());
 
 #if UNITY_WEBGL
@@ -93,6 +95,7 @@ namespace Assets.Scripts.Logging
             frm.AddField("difficultyRotation", difficultyRotation);
             frm.AddField("difficultySpawning", difficultySpawning);
             frm.AddField("interrupted", interruptedStr);
+            frm.AddField("keyPressCount", keyPressCount);
             frm.AddField("movements", movements);
 
             experiment.StartCoroutine(PostTrialWebRequest(experiment.ServerUrl + "/sh_post_trial", frm));

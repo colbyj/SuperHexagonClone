@@ -35,13 +35,13 @@ namespace Assets.Scripts.Logging
     public class PlayerProgressLog : MonoBehaviour
     {
         Experiment _experiment;
-        SHSBehavior _solver;
+        //SHSBehavior _solver;
         PlayerBehavior _controls;
 
         void Start()
         {
             _experiment = GameObject.FindObjectOfType<Experiment>();
-            _solver = GameObject.FindObjectOfType<SHSBehavior>();
+            //_solver = GameObject.FindObjectOfType<SHSBehavior>();
             _controls = GameObject.FindObjectOfType<PlayerBehavior>();
         }
 

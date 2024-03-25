@@ -15,7 +15,7 @@ namespace Assets.Scripts.Edit
         private void Awake()
         {
             Instance = this;
-            PlayerBehavior.IsDead = true;
+            PlayerBehavior.Instance.ForceDeath();
             ThreatManager.Instance.PatternIsOffScreen += PatternIsOffScreen;
             PlayerBehavior.OnPlayerDied += (line) => PlayerDied();
 

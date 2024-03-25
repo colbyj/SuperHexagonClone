@@ -29,7 +29,7 @@ namespace Assets.Scripts.LevelVisuals
         // changed on the fly without sending messages to individual objects.
         // For now this is not necessary.
 
-        [SerializeField] private SHLane _basicLane;
+        [SerializeField] private GameObject _basicLane;
         [SerializeField] private Material[] _mats = new Material[2];
 
         //Graphical
@@ -39,7 +39,7 @@ namespace Assets.Scripts.LevelVisuals
             new(0.48235297f, 0.48235297f, 0.48235297f)
         };
 
-        public List<SHLane> Lanes = new();
+        public List<GameObject> Lanes = new();
 
         private void Awake()
         {
@@ -70,12 +70,12 @@ namespace Assets.Scripts.LevelVisuals
 
 
             //levelManager.Lanes = new List<SHLane>();
-            Lanes = new List<SHLane>();
+            Lanes = new List<GameObject>();
 
             for (int i = LanesRequired - lanesNeeded; i < LanesRequired; i++)
             {
                 //Instantiate
-                SHLane newLane = Instantiate(_basicLane, transform.position,
+                GameObject newLane = Instantiate(_basicLane, transform.position,
                     Quaternion.Euler(0, 0, i * 360f / LanesRequired), transform);
                 Lanes.Add(newLane);
 
@@ -93,17 +93,16 @@ namespace Assets.Scripts.LevelVisuals
             // This seems to be called more often than necessary?
             for (int i = 0; i < Lanes.Count; i++)
             {
-                SHLane currentLane = Lanes[i];
-                GameObject currentLaneGo = currentLane.gameObject;
+                GameObject currentLane = Lanes[i];
 
                 if (i >= LanesRequired)
                 {
-                    currentLaneGo.SetActive(false);
+                    currentLane.SetActive(false);
                     continue;
                 }
-                else if (i < LanesRequired && currentLaneGo.activeInHierarchy == false)
+                else if (i < LanesRequired && currentLane.activeInHierarchy == false)
                 {
-                    currentLaneGo.SetActive(true);
+                    currentLane.SetActive(true);
                 }
 
                 //Instantiate
@@ -114,8 +113,8 @@ namespace Assets.Scripts.LevelVisuals
                 Material matToApply = _mats[i % _mats.Length];
                 //matToApply.SetColor("_TintColor", laneColors[i % laneColors.Length]);
                 //matToApply.SetColor(i%laneColors.Length,laneColors[i % laneColors.Length]);
-                currentLaneGo.GetRequiredComponent<MeshRenderer>().material = matToApply;
-                currentLaneGo.GetRequiredComponent<MeshRenderer>().material.color = _laneColors[i % _laneColors.Length];
+                currentLane.GetRequiredComponent<MeshRenderer>().material = matToApply;
+                currentLane.GetRequiredComponent<MeshRenderer>().material.color = _laneColors[i % _laneColors.Length];
             }
         }
 
@@ -126,11 +125,6 @@ namespace Assets.Scripts.LevelVisuals
 
         public void ResetLanes()
         {
-            foreach (SHLane lane in Lanes)
-            {
-                lane.ClearThreats();
-            }
-
             ConfigLanes();
         }
         #endregion

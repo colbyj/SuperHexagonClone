@@ -104,7 +104,7 @@ namespace Assets.Scripts.Edit
         {
             gameObject.SetActive(false); // Turn off these edit controls.
 
-            PlayerBehavior.IsDead = false;
+            PlayerBehavior.Instance.ForceRespawn();
         
             if (SHLine.SelectedLine != null)
             {

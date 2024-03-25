@@ -96,8 +96,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: da9ab9550d7b0f24182a063f1d2f15be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _basicLane: {fileID: 114054707622128376, guid: a2c4474e738b149459d27ef9ce9764fd,
-    type: 3}
+  _basicLane: {fileID: 1022105208753752, guid: a2c4474e738b149459d27ef9ce9764fd, type: 3}
   _mats:
   - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}

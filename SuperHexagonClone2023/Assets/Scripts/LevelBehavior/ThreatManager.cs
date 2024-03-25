@@ -149,7 +149,7 @@ namespace Assets.Scripts.LevelBehavior
 
         private void UpdateThreatRadii()
         {
-            if (PlayerBehavior.IsDead)
+            if (PlayerBehavior.IsDead) // Threats don't move if player is dead!
             {
                 return;
             }

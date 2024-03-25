@@ -28,11 +28,8 @@ namespace Assets.Scripts.Logging
         { 
             // Workaround for Unity's built-in JSON Serialization tools.
             public List<SessionParameters> Sessions;
-            public string FeedbackType;
         }
 #pragma warning restore 0649
-
-
 
         public void SaveState()
         {
@@ -135,7 +132,6 @@ namespace Assets.Scripts.Logging
                 string sessionJson = File.ReadAllText($"{Path.Combine(Application.streamingAssetsPath, "settings.json")}");
 
                 var settings = JsonUtility.FromJson<ExperimentSettings>(sessionJson);
-                CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
                 Sessions = settings.Sessions;
             }
             else
@@ -151,7 +147,6 @@ namespace Assets.Scripts.Logging
                     Debug.Log(response);
 
                     var settings = JsonUtility.FromJson<ExperimentSettings>(response);
-                    CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
                     Sessions = settings.Sessions;
                 }
             }

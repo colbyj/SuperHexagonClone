@@ -11,7 +11,6 @@ GameObject:
   - component: {fileID: 4981678040245588}
   - component: {fileID: 33047641046503184}
   - component: {fileID: 23482829990028858}
-  - component: {fileID: 114054707622128376}
   - component: {fileID: 114430254927739668}
   - component: {fileID: -1493799898650043372}
   m_Layer: 9
@@ -88,21 +87,6 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &114054707622128376
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1022105208753752}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 512cfe22c08a93e47a50dfde8cfab6fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  ThreatPrefab: {fileID: 0}
-  ActiveThreats: []
-  AmountToPool: 0
 --- !u!114 &114430254927739668
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -248,6 +232,7 @@ MonoBehaviour:
   _isSelected: 0
   _radius: 2.5
   _thickness: 0.5
+  _meshRenderer: {fileID: 0}
   _needsUpdate: 1
   _points: []
   TriggerMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
@@ -257,6 +242,7 @@ MonoBehaviour:
   EditMaterial: {fileID: 2100000, guid: bf2ff152122944b458b4969c16b3202e, type: 2}
   _isTriggerOnly: 0
   _defaultTag: Untagged
+  ArcLengthDegrees: 60
 --- !u!60 &60008022801966508
 PolygonCollider2D:
   m_ObjectHideFlags: 0

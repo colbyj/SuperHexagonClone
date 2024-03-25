@@ -131,6 +131,10 @@ namespace Assets.Scripts.Logging
             /// How long you want the session to last (seconds).
             /// </summary>
             public float SessionTime;
+            /// <summary>
+            /// What type of feedback are we using? Valid options are Default, None, Meaningless, Meaningful
+            /// </summary>
+            public string FeedbackType;
         }
 
         public static Experiment Instance;
@@ -141,7 +145,20 @@ namespace Assets.Scripts.Logging
         public ShGameState State;
         public bool PlaySoundOnSessionStart = true;
 
-        public FeedbackMode CurrentFeedbackMode = FeedbackMode.Default;
+        public FeedbackMode CurrentFeedbackMode 
+        {
+            get
+            {
+                try 
+                {
+                    return Enum.Parse<FeedbackMode>(Sessions[SessionNumber].FeedbackType);
+                } catch
+                {
+                    return FeedbackMode.None;
+                }
+                
+            }
+        }
 
         private int _trialFrames = 0;
         private bool _newHighScore = false;
@@ -196,6 +213,7 @@ namespace Assets.Scripts.Logging
         float _timeLastMovementLogged = 0f; // In-game time indicating when movement was last logged
         public float TimeDeltaMovement = 0.150f; // In seconds
         PlayerBehavior _playerControls;
+        public int movementKeysPressedThisTrial = 0;
 
         private TrialLogging _trialLogging = new();
 
@@ -207,22 +225,9 @@ namespace Assets.Scripts.Logging
             Instance = this;
             Application.targetFrameRate = 120;
 
-            PlayerBehavior.OnPlayerDied += (line) =>
+            PlayerBehavior.OnInputStart += () => 
             {
-                if (CurrentFeedbackMode == FeedbackMode.Meaningless)
-                {
-                    _deathCanvas.SetActive(true);
-                    _explosion.SetActive(true);
-                }
-            };
-
-            PlayerBehavior.OnPlayerRespawn += () =>
-            {
-                if (CurrentFeedbackMode == FeedbackMode.Meaningless)
-                {
-                    _deathCanvas.SetActive(false);
-                    _explosion.SetActive(false);
-                }
+                movementKeysPressedThisTrial += 1;
             };
         }
 
@@ -243,6 +248,25 @@ namespace Assets.Scripts.Logging
             _playerControls = FindObjectOfType<PlayerBehavior>();
             State = ShGameState.Loading;
             StartCoroutine(LoadSettings(AfterSetttingsLoaded));
+        }
+
+        public void OnPlayerDied()
+        {
+            if (CurrentFeedbackMode == FeedbackMode.Meaningless)
+            {
+                _deathCanvas.SetActive(true);
+                _explosion.SetActive(true);
+            }
+        }
+
+        public void OnPlayerRespawn()
+        {
+            if (CurrentFeedbackMode == FeedbackMode.Meaningless)
+            {
+                _deathCanvas.SetActive(false);
+                _explosion.SetActive(false);
+            }
+            movementKeysPressedThisTrial = 0;
         }
 
         // Update is called once per frame
@@ -363,8 +387,8 @@ namespace Assets.Scripts.Logging
         public void EndSession(bool onGameStart)
         {
             TimerTrial.Stop();
-            LaneManager.Instance.ResetLanes();
-            LevelManager.Instance.StopLevel();
+            PlayerBehavior.Instance.ForceDeath();
+            ThreatManager.Instance.Clear();
 
             if (!onGameStart)
             {
@@ -391,10 +415,11 @@ namespace Assets.Scripts.Logging
             }
             else
             {
+                PlayerBehavior.Instance.ForceDeath();
                 State = ShGameState.InterSessionBreak;
             }
 
-            OnSessionEnd?.Invoke();
+            OnSessionEnd?.Invoke(); // Need to reset the level, like when the player dies
         }
 
         public void StartSession()
@@ -404,7 +429,7 @@ namespace Assets.Scripts.Logging
             if (InterSessionTime() != InterTrialTime() || SessionNumber == 0)
             {
                 InterSessionText.enabled = false;
-                FindObjectOfType<PressKeyToBegin>().StartPause();
+                //FindObjectOfType<PressKeyToBegin>().StartPause();
             }
 
             Alert.Play();
@@ -424,8 +449,7 @@ namespace Assets.Scripts.Logging
             TrialNumber++;
             SaveState();
 
-            LaneManager.Instance.ResetLanes();
-            LevelManager.Instance.StopLevel();
+            PlayerBehavior.Instance.ForceDeath();
 
             InterTrialTimer.Reset();
             InterTrialTimer.Start();
@@ -495,7 +519,7 @@ namespace Assets.Scripts.Logging
             //Debug.Log("After State Loaded. interSessionTimeRemaining = " + interSessionTimeRemaining + "; sessionTimeRemaining = " + sessionTimeRemaining);
             if (InterSessionTimeRemaining != 0 && SessionTimeRemaining == 0)
             {
-                FindObjectOfType<PressKeyToBegin>().StopPause();
+                //FindObjectOfType<PressKeyToBegin>().StopPause();
                 EndSession(true);
             }
             else

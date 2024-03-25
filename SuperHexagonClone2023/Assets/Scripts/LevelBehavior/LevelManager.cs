@@ -36,8 +36,7 @@ namespace Assets.Scripts.LevelBehavior
 
             _experiment = FindObjectOfType<Experiment>();
 
-            PlayerBehavior.OnPlayerDied += (threat) => OnPlayerDied();
-            PlayerBehavior.OnPlayerRespawn += OnPlayerRespawn;
+            //PlayerBehavior.OnPlayerDied += (threat) => OnPlayerDied();
 
             StartCoroutine(ParseLevel());
         }
@@ -69,7 +68,7 @@ namespace Assets.Scripts.LevelBehavior
             _levelIsLoaded = true;
         }
 
-        private void OnPlayerDied()
+        public void OnPlayerDied()
         {
             _levelIsActive = false;
 
@@ -80,7 +79,7 @@ namespace Assets.Scripts.LevelBehavior
             }
         }
 
-        private void OnPlayerRespawn()
+        public void OnPlayerRespawn()
         {
             if (Experiment.Instance?.CurrentFeedbackMode != Experiment.FeedbackMode.Meaningless &&
                 Experiment.Instance?.CurrentFeedbackMode != Experiment.FeedbackMode.None)
@@ -122,8 +121,7 @@ namespace Assets.Scripts.LevelBehavior
                 _experiment.State = Experiment.ShGameState.Playing;
             }
 
-
-            PlayerBehavior.IsDead = false;
+            PlayerBehavior.Instance.ForceRespawn();
             //timeLastObstacle = Time.time;
             Level.ResetLevel();
             _levelIsActive = true;
@@ -137,17 +135,9 @@ namespace Assets.Scripts.LevelBehavior
             Debug.Log("BeginLevel");
         }
 
-        /// <summary>
-        /// Stop new threats from spawning.
-        /// </summary>
-        public void StopLevel()
-        {
-            PlayerBehavior.IsDead = true;
-        }
-
         public void Update()
         {
-            if (!_levelIsLoaded)
+            if (!_levelIsLoaded || PlayerBehavior.IsDead)  // Don't do anything if player is dead or level isn't loaded yet.
                 return;
 
             LevelCommand nextCommand = Level.NextCommand;

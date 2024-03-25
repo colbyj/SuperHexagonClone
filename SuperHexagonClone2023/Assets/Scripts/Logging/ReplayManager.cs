@@ -27,7 +27,8 @@ namespace Assets.Scripts.Logging
         PatternIsOffScreen,
         MoveStart,
         MoveEnd,
-        SolverTriggersChanged
+        SolverTriggersChanged,
+        SessionEnded
     }
 
     [Serializable]
@@ -163,6 +164,13 @@ namespace Assets.Scripts.Logging
                 (SHLine trigger) =>
                 {
                     AddThreatLog(trigger, ReplayEventType.CheckpointTrigger);
+                };
+
+            Experiment.OnSessionEnd += 
+                () =>
+                {
+                    AddBasicLog(ReplayEventType.SessionEnded);
+                    SaveEvents();
                 };
 
             PlayerBehavior.OnInputStart += () => AddBasicLog(ReplayEventType.MoveStart);
