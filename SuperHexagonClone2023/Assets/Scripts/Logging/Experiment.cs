@@ -390,9 +390,19 @@ namespace Assets.Scripts.Logging
             PlayerBehavior.Instance.ForceDeath();
             ThreatManager.Instance.Clear();
 
+            if (CurrentFeedbackMode == FeedbackMode.Meaningless)
+            {
+                _deathCanvas.SetActive(false);
+                _explosion.SetActive(false);
+            }
+
             if (!onGameStart)
             {
-                _trialLogging.SaveTrial(_trialFrames, this, true);
+                if (State != ShGameState.InterTrialBreak) // If the state is on InterTrialBreak then the player must have died.
+                {
+                    _trialLogging.SaveTrial(_trialFrames, this, true);
+                    Debug.Log("Saved interrupted trial");
+                }
                 TrialNumber++;
                 SaveState();
                 SessionNumber++;
