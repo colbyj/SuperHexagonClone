@@ -190,8 +190,8 @@ namespace Assets.Scripts.LevelBehavior
                 // Did the player win?
                 if (patternInstancePastPlayer.LastBeforeRestart)
                 {
-                    Experiment.Instance?.Success.Play();
-                    FindObjectOfType<DisplayMessage>().AddMessageToTop("Level completed!", 2f);
+                    //Experiment.Instance?.Success.Play();
+                    //FindObjectOfType<DisplayMessage>().AddMessageToTop("Level completed!", 2f);
                 }
             }
 

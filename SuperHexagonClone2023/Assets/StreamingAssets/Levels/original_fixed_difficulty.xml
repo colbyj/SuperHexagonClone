@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<Commands>
+  <RotationDifficulty>30</RotationDifficulty>
+  <RotationDifficultyMax>210</RotationDifficultyMax>
+  <RotationDifficultyRate>1.5</RotationDifficultyRate>
+  <ThreatSpeed>15</ThreatSpeed>
+  <ThreatSpeedRate>0.125</ThreatSpeedRate>
+  <ThreatSpeedMax>35</ThreatSpeedMax>
+  <PlayerSpeed>300</PlayerSpeed>
+  <PatternRadiusOffset>15</PatternRadiusOffset>
+  <CWCamera />
+
+  <RepeatFromHere />
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_2_hole_c</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_2_hole_b</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_c_easy</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="3" mirrored="0">hex_c_easy</Pattern></SpawnOne>
+
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_c_hard</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="3" mirrored="0">hex_c_hard</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="3" mirrored="0">hex_c_easy</Pattern></SpawnOne>
+
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_zigzag_2way_x3_15u</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="4" mirrored="0">hex_c_easy</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_c_easy</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="2" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="5" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_321_15u</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_c_hard</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_spiral_size_5_1_loop</Pattern></SpawnOne> 
+  <SpawnOne><Pattern offset="0" rotate="2" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="5" mirrored="0">hex_c_hard</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_zigzag_1way_x3_15u</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="2" mirrored="0">hex_c_hard</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_c_easy</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="2" mirrored="0">hex_c_easy</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_multi_c_x4_15u</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_rain_15_u</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_2_hole_a</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_multi_c_x4_15u</Pattern></SpawnOne> 
+  <SpawnOne><Pattern offset="0" rotate="3" mirrored="0">hex_oneway_15u</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_2_hole_b</Pattern></SpawnOne> 
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="1">hex_spiral_size_5_1_loop</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole_x3</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole_x3</Pattern></SpawnOne>
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_3_hole</Pattern></SpawnOne>  
+  <SpawnOne><Pattern offset="0" rotate="1" mirrored="0">hex_3_hole</Pattern></SpawnOne> 
+  <SpawnOne><Pattern offset="0" rotate="0" mirrored="0">hex_multi_c_x7_15u</Pattern></SpawnOne> 
+
+</Commands>

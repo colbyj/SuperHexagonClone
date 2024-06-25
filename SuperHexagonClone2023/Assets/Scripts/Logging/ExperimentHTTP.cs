@@ -157,7 +157,6 @@ namespace Assets.Scripts.Logging
             string sessionJson = File.ReadAllText($"{Path.Combine(Application.streamingAssetsPath, "settings.json")}");
             
             var settings = JsonUtility.FromJson<ExperimentSettings>(sessionJson);
-            CurrentFeedbackMode = Enum.Parse<FeedbackMode>(settings.FeedbackType);
             Sessions = settings.Sessions;
 
             doAfter();

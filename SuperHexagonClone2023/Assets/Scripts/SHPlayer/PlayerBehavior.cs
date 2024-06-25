@@ -43,7 +43,7 @@ namespace Assets.Scripts.SHPlayer
 
                     //OnPlayerRespawn?.Invoke();
                     //Debug.Log("Player respawned!");
-                    LevelManager.Instance.OnPlayerRespawn();
+                    LevelManager.Instance?.OnPlayerRespawn();
                     Experiment.Instance?.OnPlayerRespawn();
                     Music.Instance?.OnPlayerRespawn();
                 }
@@ -182,7 +182,7 @@ namespace Assets.Scripts.SHPlayer
             if (!IsDead && collision.gameObject.tag == "Threat" && collision is EdgeCollider2D)
             {
                 // If extra feedback is turned on, work out where to show the feedback.
-                if (Experiment.Instance.CurrentFeedbackMode == Experiment.FeedbackMode.Meaningful)
+                if (Experiment.Instance?.CurrentFeedbackMode == Experiment.FeedbackMode.Meaningful)
                 {
                     var leftDistance = _leftCollider.Distance(collision);
                     var rightDistance = _rightCollider.Distance(collision);
@@ -276,7 +276,7 @@ namespace Assets.Scripts.SHPlayer
             //Debug.Log("Player has died!");
 
             OnPlayerDied?.Invoke(lineTouched);
-            LevelManager.Instance.OnPlayerDied();
+            LevelManager.Instance?.OnPlayerDied();
             Experiment.Instance?.OnPlayerDied();
             Music.Instance?.OnPlayerDied();
 

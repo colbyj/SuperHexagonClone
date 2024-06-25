@@ -30,14 +30,14 @@ namespace Assets.Scripts.LevelBehavior
                 _value = StartingValue + (IncreaseBy * increases);
             }
 
-            public void IncreaseDifficulty()
+            public void IncreaseDifficulty(float updateRate)
             {
                 if (_value + IncreaseBy >= CeilingValue)
                 {
                     _value = CeilingValue;
                     return;
                 }
-                _value = _value + IncreaseBy;
+                _value = _value + (IncreaseBy * updateRate);
             }
 
             public void SetStartingValue(float value)
@@ -115,8 +115,8 @@ namespace Assets.Scripts.LevelBehavior
         {
             if (LevelManager.Instance != null && !PlayerBehavior.IsDead)
             {
-                RotationDifficultyAccelerator.IncreaseDifficulty();
-                ThreatDifficultyAccelerator.IncreaseDifficulty();
+                RotationDifficultyAccelerator.IncreaseDifficulty(UpdateRate);
+                ThreatDifficultyAccelerator.IncreaseDifficulty(UpdateRate);
             }
 
             ConstantWorldRotation.Instance.CurrentRotationRate = RotationDifficultyAccelerator.GetValue();

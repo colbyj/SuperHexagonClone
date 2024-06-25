@@ -1,7 +1,6 @@
 { 
 	"Sessions": [
-		{"InterTrialTime": 3.0, "SessionTime": 30, "InterSessionTime": 6, "FeedbackType": "None"},
-		{"InterTrialTime": 3.0, "SessionTime": 30, "InterSessionTime": 6, "FeedbackType": "Meaningful"},
-		{"InterTrialTime": 3.0, "SessionTime": 30, "InterSessionTime": 6, "FeedbackType": "Meaningless"}
+		{"InterTrialTime": 3.0, "SessionTime": 300, "InterSessionTime": 60, "FeedbackType": "None"},
+		{"InterTrialTime": 3.0, "SessionTime": 300, "InterSessionTime": 6, "FeedbackType": "None"}
 	]
 }
