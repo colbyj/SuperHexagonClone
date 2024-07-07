@@ -72,7 +72,7 @@ namespace Assets.Scripts.Logging
             {
                 framerate = 0f;
             }
-
+            
             string durationStr = experiment.TimerTrial.Value.ToString("#.00");
             string fpsStr = framerate.ToString("#.00");
             string difficultyRotation = DifficultyManager.Instance.CameraRotationSpeed.ToString("#.00000");

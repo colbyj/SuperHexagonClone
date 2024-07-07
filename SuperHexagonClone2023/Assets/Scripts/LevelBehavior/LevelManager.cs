@@ -1,8 +1,10 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Assets.Scripts.Logging;
 using Assets.Scripts.SHPlayer;
 using UnityEngine;
@@ -37,6 +39,9 @@ namespace Assets.Scripts.LevelBehavior
             _experiment = FindObjectOfType<Experiment>();
 
             //PlayerBehavior.OnPlayerDied += (threat) => OnPlayerDied();
+
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
 
             StartCoroutine(ParseLevel());
         }

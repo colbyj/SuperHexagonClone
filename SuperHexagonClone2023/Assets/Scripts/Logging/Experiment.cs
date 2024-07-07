@@ -223,6 +223,7 @@ namespace Assets.Scripts.Logging
         private void Awake()
         {
             Instance = this;
+            
             Application.targetFrameRate = 120;
 
             PlayerBehavior.OnInputStart += () => 

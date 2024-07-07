@@ -71,6 +71,7 @@ namespace Assets.Scripts.LevelBehavior
         /// The overall rate in which the difficulty increases
         /// </summary>
         public float UpdateRate = 1f;
+        private float _updateTimer = 0;
 
         /// <summary>
         /// Increase the speed of the camera rotation over time.
@@ -108,7 +109,24 @@ namespace Assets.Scripts.LevelBehavior
 
             ResetDifficulty();
 
-            InvokeRepeating(nameof(UpdateDifficulty), 0f, UpdateRate); // Starts the difficulty increases
+            //InvokeRepeating(nameof(UpdateDifficulty), 0f, UpdateRate); // Starts the difficulty increases
+        }
+
+        public void Update()
+        {
+            if (PlayerBehavior.IsDead)
+            {
+                _updateTimer = 0f;
+                return;
+            }
+
+            _updateTimer += Time.deltaTime;
+
+            if (_updateTimer >= UpdateRate)
+            {
+                UpdateDifficulty();
+                _updateTimer = 0f;
+            }
         }
 
         void UpdateDifficulty()
